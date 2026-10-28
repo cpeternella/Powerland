@@ -1,0 +1,1392 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Powerland Valuation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: fixed left rail (navigation) + working canvas; sticky live-result strip on top of the canvas */
+:root{
+  --bg:#F2F4F6; --surface:#FFFFFF; --surface-2:#E8ECF0; --ink:#15212C; --muted:#586878; --line:#D3DAE1;
+  --accent:#B0532A; --accent-ink:#FFFFFF; --accent-soft:#F5E3D9; --steel:#2E5D84; --steel-soft:#DCE7F1;
+  --pos:#2C7A4C; --pos-soft:#DDEFE4; --neg:#B03636; --neg-soft:#F6DEDE; --warn:#9A6E0E;
+  --side:#15212C; --side-2:#1E2C39; --side-fg:#E6ECF1; --side-muted:#8FA0B0; --side-line:#2B3B49;
+  --input:#FFFFFF; --input-line:#C5CED7; --edit:#FFF8E6; --edit-line:#E6C77A;
+  --shadow:0 1px 2px rgba(20,33,44,.06),0 4px 16px rgba(20,33,44,.06);
+  --f-display:"Archivo","Segoe UI",system-ui,sans-serif;
+  --f-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D141B; --surface:#141E28; --surface-2:#1B2733; --ink:#E4EBF1; --muted:#93A4B4; --line:#283745;
+  --accent:#E2864F; --accent-ink:#1A0E07; --accent-soft:#3A2418; --steel:#76A9D3; --steel-soft:#1C3145;
+  --pos:#5DC28C; --pos-soft:#173226; --neg:#EC7474; --neg-soft:#3B1C1E; --warn:#DDAE45;
+  --side:#090F15; --side-2:#121C26; --side-fg:#E4EBF1; --side-muted:#7F92A3; --side-line:#1E2B37;
+  --input:#101921; --input-line:#33465A; --edit:#2A2412; --edit-line:#6B5520;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D141B; --surface:#141E28; --surface-2:#1B2733; --ink:#E4EBF1; --muted:#93A4B4; --line:#283745;
+  --accent:#E2864F; --accent-ink:#1A0E07; --accent-soft:#3A2418; --steel:#76A9D3; --steel-soft:#1C3145;
+  --pos:#5DC28C; --pos-soft:#173226; --neg:#EC7474; --neg-soft:#3B1C1E; --warn:#DDAE45;
+  --side:#090F15; --side-2:#121C26; --side-fg:#E4EBF1; --side-muted:#7F92A3; --side-line:#1E2B37;
+  --input:#101921; --input-line:#33465A; --edit:#2A2412; --edit-line:#6B5520;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25); color-scheme:dark}
+
+[hidden]{display:none !important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+*{box-sizing:border-box}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:1.5rem;font-weight:700}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.95rem;font-weight:650}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+
+/* ---------- login */
+#login{min-height:100%;display:grid;place-items:center;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:48px 48px;background-position:-1px -1px}
+.login-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:28px;display:grid;gap:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;flex:none}
+.brand-name{font-family:var(--f-display);font-weight:800;font-size:1.15rem;letter-spacing:.02em}
+.brand-sub{font-size:.75rem;color:var(--muted)}
+.field{display:grid;gap:5px}
+.field label{font-size:.78rem;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{background:var(--input);border:1px solid var(--input-line);border-radius:var(--r);padding:8px 10px;min-width:0;width:100%}
+.login-note{font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.err{color:var(--neg);font-size:.82rem;min-height:1.2em}
+
+/* ---------- buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--input-line);background:var(--surface);border-radius:var(--r);padding:7px 12px;cursor:pointer;font-weight:600;font-size:.85rem;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--neg);border-color:var(--neg)}
+.btn.sm{padding:4px 9px;font-size:.78rem}
+.btn.ghost{border-color:transparent;background:transparent}
+.seg{display:inline-flex;border:1px solid var(--input-line);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 10px;cursor:pointer;font-weight:600;font-size:.8rem}
+.seg button+button{border-left:1px solid var(--input-line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+
+/* ---------- shell */
+#app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100%}
+#side{background:var(--side);color:var(--side-fg);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;padding-block:18px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px;gap:16px}
+#side .brand-sub{color:var(--side-muted)}
+nav.menu{display:grid;gap:2px}
+nav.menu .grp{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--side-muted);padding:12px 10px 4px;font-weight:600}
+nav.menu a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);color:var(--side-fg);text-decoration:none;font-weight:500;font-size:.88rem}
+nav.menu a svg{width:16px;height:16px;flex:none;opacity:.75}
+nav.menu a:hover{background:var(--side-2)}
+nav.menu a[aria-current="page"]{background:var(--side-2);box-shadow:inset 3px 0 0 var(--accent)}
+nav.menu a[aria-current="page"] svg{opacity:1;color:var(--accent)}
+.side-foot{margin-top:auto;border-top:1px solid var(--side-line);padding-top:12px;font-size:.78rem;color:var(--side-muted);display:grid;gap:8px}
+.side-foot .btn{background:transparent;color:var(--side-fg);border-color:var(--side-line)}
+
+#main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.topbar .scen{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.topbar .scen b{font-family:var(--f-display);font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fx{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.fx input{width:72px;background:var(--input);border:1px solid var(--input-line);border-radius:var(--r);padding:5px 7px;font-family:var(--f-mono)}
+#burger{display:none}
+.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.strip div{background:var(--surface-2);padding:8px 14px;min-width:0}
+.strip div:first-child{padding-left:max(16px,env(safe-area-inset-left,0px))}
+.strip .k{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .v{font-family:var(--f-mono);font-size:.98rem;font-weight:600;white-space:nowrap}
+#view{padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px;align-content:start;min-width:0}
+.vhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;justify-content:space-between}
+.vhead p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+
+/* ---------- panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0}
+.panel>header{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:baseline}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:4px;min-width:0}
+.tile .k{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.tile .v{font-family:var(--f-display);font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .s{font-size:.78rem;color:var(--muted)}
+.tile.hero{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tile.hero .k,.tile.hero .s{color:color-mix(in srgb,var(--surface) 70%,var(--ink))}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em}
+.pill.pos{background:var(--pos-soft);color:var(--pos)}
+.pill.neg{background:var(--neg-soft);color:var(--neg)}
+.pill.neu{background:var(--steel-soft);color:var(--steel)}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+
+/* sliders */
+.sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+.sl{display:grid;gap:6px}
+.sl .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sl .top label{font-weight:650}
+.sl .top output{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;color:var(--accent)}
+.sl input[type=range]{width:100%;accent-color:var(--accent)}
+.sl .scale{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);font-family:var(--f-mono)}
+.sl .sub{font-size:.75rem;color:var(--muted)}
+
+/* gate timeline */
+.timeline{position:relative;height:74px;margin-inline:6px}
+.timeline .axis{position:absolute;left:0;right:0;top:34px;height:4px;background:var(--surface-2);border-radius:2px}
+.timeline .done{position:absolute;left:0;top:34px;height:4px;background:var(--steel);border-radius:2px}
+.timeline .g{position:absolute;top:0;transform:translateX(-50%);text-align:center;font-size:.7rem;white-space:nowrap}
+.timeline .g b{display:block;font-family:var(--f-display);font-size:.8rem}
+.timeline .g i{display:block;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--steel);margin:5px auto 0}
+.timeline .g.close i{border-color:var(--accent);background:var(--accent)}
+.timeline .g .m{display:block;margin-top:6px;color:var(--muted);font-family:var(--f-mono)}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:650;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;background:var(--surface-2);position:sticky;top:0;z-index:1}
+td.n,th.n{text-align:right}
+tr.tot td{font-weight:700;background:var(--surface-2)}
+tr.sub td{font-weight:650}
+tr.hl td{background:var(--accent-soft)}
+td.wrap{white-space:normal;min-width:220px}
+.tw.tall{max-height:70vh;overflow:auto}
+
+/* spreadsheet grid */
+.sheet{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:8px;background:var(--surface);max-width:100%}
+.sheet table{font-size:.78rem;width:auto}
+.sheet th,.sheet td{padding:0;border-right:1px solid var(--line)}
+.sheet th{padding:5px 6px;text-align:center}
+.sheet thead th{top:0}
+.sheet .sc{position:sticky;left:0;z-index:2;background:var(--surface);width:64px;min-width:64px;max-width:64px}
+.sheet .sc2{position:sticky;left:64px;z-index:2;background:var(--surface)}
+.sheet thead .sc,.sheet thead .sc2{z-index:3;background:var(--surface-2)}
+.sheet td input{width:76px;border:0;background:transparent;padding:5px 6px;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.sheet td input:focus{background:var(--edit);outline:1px solid var(--edit-line);outline-offset:-1px}
+.sheet td input.nz{color:var(--ink);font-weight:600}
+.sheet td input:not(.nz){color:var(--muted)}
+.sheet td.after{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--surface-2) 6px 7px)}
+.sheet th.gm{background:var(--steel-soft);color:var(--steel)}
+.sheet th.cm{background:var(--accent-soft);color:var(--accent)}
+.sheet td.name input{width:260px;text-align:left;font-family:var(--f-body)}
+.sheet td.name{min-width:260px}
+.sheet td select{border:0;background:transparent;padding:5px 4px;font-weight:700}
+.sheet td.tot{padding:5px 8px;text-align:right;font-family:var(--f-mono);font-weight:700;background:var(--surface-2)}
+.sheet td.chk{text-align:center}
+.sheet tr.rec td.name input{color:var(--steel)}
+.sheet tfoot td{padding:5px 6px;text-align:right;font-family:var(--f-mono);font-weight:700;background:var(--surface-2);position:sticky;bottom:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar .field{display:flex;align-items:center;gap:6px}
+.toolbar .field input{width:90px;padding:5px 7px}
+
+/* forms */
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px 18px}
+.form .field .hint{font-size:.72rem;color:var(--muted)}
+.inwrap{display:flex;align-items:center;background:var(--input);border:1px solid var(--input-line);border-radius:var(--r)}
+.inwrap input{border:0 !important;background:transparent !important;font-family:var(--f-mono)}
+.inwrap span{padding:0 9px;color:var(--muted);font-size:.78rem;white-space:nowrap}
+td input.cell{width:100%;min-width:70px;background:var(--input);border:1px solid var(--input-line);border-radius:4px;padding:4px 6px;font-family:var(--f-mono);text-align:right}
+td input.cell.txt{text-align:left;font-family:var(--f-body);min-width:200px}
+
+/* heat matrix */
+.mx td.n{min-width:84px}
+.mx td.c0{background:var(--neg-soft);color:var(--neg)}
+.mx td.c1{background:var(--pos-soft);color:var(--pos)}
+.mx td.cur{outline:2px solid var(--accent);outline-offset:-2px;font-weight:700}
+.mx th.rowh{position:sticky;left:0;z-index:2}
+
+.chart{position:relative;height:280px}
+.chart.sm{height:220px}
+.note{font-size:.78rem;color:var(--muted);max-width:90ch}
+.confirm{display:inline-flex;gap:6px;align-items:center;font-size:.8rem}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:10px 14px;border-radius:var(--r);font-size:.85rem;z-index:50;box-shadow:var(--shadow)}
+.badge{font-size:.7rem;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-weight:600}
+.cards{display:grid;gap:10px}
+.scard{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--surface)}
+.scard .meta{min-width:0;flex:1 1 220px}
+.scard .meta b{font-family:var(--f-display)}
+.scard .kp{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem}
+.scard .kp span b{font-family:var(--f-mono)}
+textarea.code{width:100%;min-height:140px;font-family:var(--f-mono);font-size:.75rem;background:var(--input);border:1px solid var(--input-line);border-radius:var(--r);padding:8px}
+
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.grid3{grid-template-columns:1fr}}
+@media (max-width:860px){
+  #app{grid-template-columns:minmax(0,1fr)}
+  #side{position:fixed;left:0;top:0;bottom:0;width:260px;z-index:40;transform:translateX(-105%);transition:transform .2s ease;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+  #app.open #side{transform:none}
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
+  #burger{display:inline-flex}
+  .grid2,.sliders{grid-template-columns:1fr}
+}
+@media (max-width:520px){.tiles{grid-template-columns:1fr 1fr}.tile .v{font-size:1.1rem;white-space:normal}.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+.scenrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-right:auto;min-width:0}
+.scenrow .scen{margin-right:0}
+.taxseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg.tabs{flex-wrap:wrap;justify-self:start;max-width:100%}
+.seg.tabs button{padding:8px 14px;font-size:.85rem}
+
+</style>
+<div id="login" hidden></div>
+<div id="app" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* Powerland valuation engine – JS port of Modelo_Valuation_Powerland_Onda1_V10 (R$ mil, monthly, months 0..60) */
+const NM = 61;
+function sp(o){const a=new Array(NM).fill(0);for(const k in o)a[+k]=o[k];return a;}
+
+function defaultState(){
+  return {
+    v:1,
+    mw:250, price:3500, wacc:0.14, contingency:0.05, upfront:1, termMonths:1,
+    hurdle:0.25, closing:42, baseDate:'2026-11-01', risk:2, inclGar:1, garCash:1,
+    land:63000, landArea:504000, landTotal:120000, landTotalArea:1300000,
+    taxRevenue:0.0925, transCost:0, irpj:0.34, lossLimit:0.3, dtaRecog:1,
+    capexMult:1, fxRate:5.40, currency:'BRL',
+    gates:[
+      {code:'G0',pt:'Originação e Due Diligence',en:'Origination & Due Diligence',month:6,prem:0.155,prob:0.95},
+      {code:'G1',pt:'Estudos e Viabilidade Técnica',en:'Studies & Technical Feasibility',month:9,prem:0.125,prob:0.92},
+      {code:'G2',pt:'Securing do Acesso à Rede',en:'Grid Access Securing',month:16,prem:0.085,prob:0.96},
+      {code:'G3',pt:'Licenciamento, Alvarás e Servidões',en:'Licensing, Permits & Easements',month:20,prem:0.055,prob:0.96},
+      {code:'G4',pt:'Engenharia, Terraplanagem e RTB',en:'Engineering, Earthworks & RTB',month:32,prem:0.025,prob:0.90},
+      {code:'G5',pt:'Obras de Conexão e Monetização',en:'Connection Works & Monetization',month:null,prem:0,prob:0.9656097268}
+    ],
+    capex:[
+      {gate:'G0',pt:'Relatório de Due Diligence',en:'Due Diligence report',rec:false,m:sp({3:98,4:195,5:325,6:32})},
+      {gate:'G1',pt:'Custos de desenvolvimento, estudos e consultoria',en:'Development costs, studies & consulting',rec:false,m:sp({3:22,4:44,5:44,6:44,7:33,8:22,9:11})},
+      {gate:'G1',pt:'Projetos básico, executivo e detalhado – Subestação',en:'Basic, executive & detailed design – Substation',rec:false,m:sp({4:121,5:302,6:484,7:182,8:121})},
+      {gate:'G1',pt:'Levantamentos e projetos – Linha de Transmissão',en:'Surveys & design – Transmission Line',rec:false,m:sp({4:48,5:120,6:192,7:72,8:48})},
+      {gate:'G2',pt:'GPA – Garantia do Parecer de Acesso',en:'GPA – Grid Access Opinion guarantee',rec:true,m:sp({10:4500,17:-4500})},
+      {gate:'G2',pt:'GPC – Garantia do CUST',en:'GPC – CUST guarantee',rec:true,m:sp({16:45000,36:-45000})},
+      {gate:'G3',pt:'Licenciamento ambiental da Fase 1',en:'Environmental licensing – Phase 1',rec:false,m:sp({3:375,4:300,5:150,6:300,7:750,8:300,9:150,10:300,11:150,12:600,13:1500,14:300,15:300,16:150,17:450,18:750,19:300,20:375})},
+      {gate:'G3',pt:'Servidão da Linha de Transmissão',en:'Transmission Line right-of-way',rec:false,m:sp({4:88,5:88,6:122,7:88,8:88,9:88,10:88,11:88,12:88,13:88,14:88,15:578,16:175})},
+      {gate:'G3',pt:'Alvará de Construção',en:'Construction permit',rec:false,m:sp({5:48,6:95,7:48,8:48,9:48,10:190,11:48,12:190,13:48,14:48,15:95,16:48})},
+      {gate:'G3',pt:'IPTU / ITR do terreno',en:'Property tax (IPTU/ITR)',rec:false,m:sp({2:400,14:400,26:400,38:400,50:400})},
+      {gate:'G4',pt:'Terraplanagem e movimentação de terra',en:'Earthworks',rec:false,m:sp({14:11250,15:3750,16:3750,17:7500,18:11250,19:15000,20:11250,21:5250,22:2250,23:3750})},
+      {gate:'G4',pt:'Drenagem provisória e urbanização básica',en:'Temporary drainage & basic urbanization',rec:false,m:sp({21:2190,22:730,23:730,24:2190,25:2920,26:2190,27:1460,28:730,29:730,30:730})},
+      {gate:'G4',pt:'Entrada, portaria e prédios auxiliares',en:'Entrance, gatehouse & auxiliary buildings',rec:false,m:sp({23:848,24:282,25:565,26:848,27:848,28:848,29:565,30:282,31:282,32:282})},
+      {gate:'G5',pt:'Construção da Subestação',en:'Substation construction',rec:false,m:sp({20:42188,21:14062,22:14062,23:28125,24:42188,25:14062,26:5625,27:5625,28:5625,29:5625,30:5625,31:5625,32:14062,33:28125,34:14062,35:5625,36:5625,37:5625,38:5625,39:14062})},
+      {gate:'G5',pt:'Construção da Linha de Transmissão',en:'Transmission Line construction',rec:false,m:sp({21:1872,22:374,23:624,24:1248,25:1872,26:1248,27:624,28:250,29:250,30:499,31:749,32:499,33:250,34:250,35:250,36:250,37:250,38:250,39:250,40:624})}
+    ],
+    opex:[
+      {pt:'Consultoria Fundos',en:'Fund advisory',val:12,start:0,end:'C',adj:0},
+      {pt:'Registro Anbima – Fundo',en:'Anbima registration – Fund',val:4,start:2,end:2,adj:0},
+      {pt:'Registro CVM – Fundo',en:'CVM registration – Fund',val:6,start:2,end:2,adj:0},
+      {pt:'Registro de abertura de oferta pública',en:'Public offering registration',val:30,start:3,end:3,adj:0},
+      {pt:'Taxa de fiscalização CVM',en:'CVM supervision fee',val:21,start:5,end:5,adj:0},
+      {pt:'Taxa Anbima',en:'Anbima fee',val:0.6,start:2,end:24,adj:0},
+      {pt:'Fee Gestora',en:'Manager fee',val:20,start:4,end:'C',adj:0},
+      {pt:'Setup Gestora',en:'Manager setup',val:50,start:4,end:4,adj:0},
+      {pt:'Fee Administração',en:'Administration fee',val:15,start:2,end:'C',adj:0},
+      {pt:'Fee INR',en:'INR fee',val:5,start:2,end:'C',adj:0},
+      {pt:'Fee Consultoria',en:'Consulting fee',val:60,start:1,end:'C',adj:0},
+      {pt:'Zitec',en:'Zitec',val:0.3,start:1,end:'C',adj:0},
+      {pt:'Jurídico',en:'Legal',val:30,start:2,end:7,adj:0},
+      {pt:'Financeiro',en:'Financial advisory',val:60,start:2,end:6,adj:0},
+      {pt:'Engenharia',en:'Engineering',val:14,start:1,end:'C',adj:0},
+      {pt:'Laudo de avaliação',en:'Appraisal report',val:40,start:4,end:4,adj:0}
+    ]
+  };
+}
+
+function addMonths(iso,n){const [y,m,d]=iso.split('-').map(Number);const t=new Date(Date.UTC(y,m-1+n,1));const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate();return new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),Math.min(d,last)));}
+function dayDiff(a,b){return Math.round((b-a)/86400000);}
+
+function irrMonthly(cf){ // returns annualized (1+r)^12-1
+  const npv=r=>{let s=0;for(let t=0;t<cf.length;t++)s+=cf[t]/Math.pow(1+r,t);return s;};
+  let lo=-0.99,hi=1, flo=npv(lo), fhi=npv(hi);
+  if(!(isFinite(flo)&&isFinite(fhi))||flo*fhi>0) return null;
+  for(let i=0;i<200;i++){const mid=(lo+hi)/2,f=npv(mid);if(Math.abs(f)<1e-9)break;if(f*flo>0){lo=mid;flo=f;}else{hi=mid;}}
+  const r=(lo+hi)/2;return Math.pow(1+r,12)-1;
+}
+function xirr(cf,days){
+  const npv=r=>{let s=0;for(let t=0;t<cf.length;t++)s+=cf[t]/Math.pow(1+r,days[t]/365);return s;};
+  let lo=-0.99,hi=10,flo=npv(lo),fhi=npv(hi);
+  if(!(isFinite(flo)&&isFinite(fhi))||flo*fhi>0) return null;
+  for(let i=0;i<300;i++){const mid=(lo+hi)/2,f=npv(mid);if(f*flo>0){lo=mid;flo=f;}else{hi=mid;}}
+  return (lo+hi)/2;
+}
+
+function opexSeries(S){
+  const tot=new Array(NM).fill(0), rows=[];
+  for(const o of S.opex){
+    const end=(o.end==='C'||o.end===''||o.end==null)?S.closing:+o.end, st=+o.start||0;
+    const r=new Array(NM).fill(0);
+    for(let t=0;t<NM;t++) if(t>=st&&t<=end) r[t]=(+o.val||0)*Math.pow(1+(+o.adj||0),Math.floor((t-st)/12));
+    rows.push(r); for(let t=0;t<NM;t++) tot[t]+=r[t];
+  }
+  return {tot,rows};
+}
+
+function run(S, ov){
+  if(ov) S=Object.assign({},S,ov);
+  const N=NM, C=S.closing, cont=S.contingency, mult=S.capexMult==null?1:S.capexMult;
+  const riskOn=S.risk===1;
+  const prem=S.gates.map(g=>riskOn?g.prem:0), prob=S.gates.map(g=>riskOn?g.prob:1);
+  const gm=S.gates.slice(0,5).map(g=>+g.month);
+  const ox=opexSeries(S);
+  const capexItemRows=S.capex.map(it=>{const r=new Array(N).fill(0);for(let t=0;t<N;t++){if(t>C)continue;const v=+it.m[t]||0;r[t]=it.rec? v*S.garCash : v*(1+cont)*mult;}return r;});
+  const capexT=new Array(N).fill(0), R=new Array(N).fill(0);
+  S.capex.forEach((it,i)=>{for(let t=0;t<N;t++){if(it.rec)R[t]+=capexItemRows[i][t];else capexT[t]+=capexItemRows[i][t];}});
+  const X=ox.tot, E=capexT.map((v,t)=>v+X[t]);
+  const term=Math.max(1,Math.round(S.termMonths||1));
+  const H=new Array(N).fill(0);
+  for(let t=0;t<N;t++){ if(t===C) H[t]=S.upfront; else if(t>C&&t<=C+term) H[t]=(1-S.upfront)/term; }
+  const G=H.map(h=>S.mw*S.price*h), Y=G.map(g=>g*S.taxRevenue), Z=G.map(g=>g*S.transCost);
+  // DRE / tax
+  const dre={rev:[],pis:[],cogs:[],opex:[],trans:[],ebt:[],tax:[],dta:[],ddta:[],ni:[],lossStart:[],lossGen:[],lossUsed:[],lossEnd:[],taxable:[],asset:[]};
+  let prevAsset=S.land, loss=0, prevDta=0;
+  for(let t=0;t<N;t++){
+    const capexEx=E[t]-X[t];
+    const cogs=G[t]>0?-(prevAsset+capexEx):0;
+    const asset=prevAsset+capexEx+cogs;
+    const ebt=G[t]-Y[t]+cogs-X[t]-Z[t];
+    const ls=loss, gen=Math.max(0,-ebt), used=Math.min(ls,Math.max(0,ebt)*S.lossLimit);
+    loss=ls+gen-used; const taxable=Math.max(0,ebt-used), tax=taxable*S.irpj;
+    const dta=loss*S.irpj*S.dtaRecog, ddta=dta-prevDta; prevDta=dta;
+    dre.rev.push(G[t]);dre.pis.push(-Y[t]);dre.cogs.push(cogs);dre.opex.push(-X[t]);dre.trans.push(-Z[t]);dre.ebt.push(ebt);dre.tax.push(-tax);dre.dta.push(dta);dre.ddta.push(ddta);dre.ni.push(ebt-tax+ddta);
+    dre.lossStart.push(ls);dre.lossGen.push(gen);dre.lossUsed.push(used);dre.lossEnd.push(loss);dre.taxable.push(taxable);dre.asset.push(asset);
+    prevAsset=asset;
+  }
+  const AA=dre.tax.map(v=>-v);
+  const d0=addMonths(S.baseDate,0), dates=[], days=[];
+  for(let t=0;t<N;t++){const d=addMonths(S.baseDate,t);dates.push(d);days.push(dayDiff(d0,d));}
+  const B=[],Cr=[],L=[],J=[],I=[],K=[],M=[],Ss=[],T=[],V=[],AC=[],AD=[],AE=[],W=[];
+  let cumS=0,cumE=0;
+  for(let t=0;t<N;t++){
+    const b=gm.filter(m=>m<t).length; B.push(b); Cr.push(S.wacc+prem[b]);
+    L.push(t===0?1:L[t-1]*Math.pow(1+Cr[t],1/12));
+    J.push(1/Math.pow(1+S.wacc,t/12));
+    const i=-E[t]+G[t]-Y[t]-Z[t]-AA[t]-R[t]*S.inclGar; I.push(i);
+    K.push(i*J[t]); M.push(i/L[t]);
+    const s=i-R[t]*(1-S.inclGar); Ss.push(s); cumS+=s; T.push(cumS);
+    V.push(i-(t===0?S.land:0));
+    const ac=-E[t]+G[t]-R[t]*S.inclGar; AC.push(ac); AD.push(ac/L[t]); AE.push(ac-(t===0?S.land:0));
+    cumE+=E[t]; W.push(cumE);
+  }
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  const G71=sum(E), G72=R.filter(v=>v>0).reduce((a,b)=>a+b,0), G73=G71+G72, G74=sum(G), G75=S.land+G71;
+  const minT=Math.min(...T), peakM=T.indexOf(minT);
+  let payback=null; for(let t=peakM+1;t<N;t++) if(T[t]>=0){payback=t;break;}
+  const taxesRev=sum(Y), taxesTrans=sum(Z), taxesIR=sum(AA);
+  // milestones
+  const cpM=[0,...gm,C];
+  const probFrom=k=>{ // E90..E96
+    if(k===6) return 1; let p=1; for(let j=k;j<6;j++) p*=prob[j]; return p; };
+  const cps=cpM.map((m,k)=>{
+    let VA,VC,VCpre;
+    if(k===0){VA=sum(K);VC=sum(M);VCpre=sum(AD);}
+    else if(k===6){VA=I[m]||0;VC=I[m]||0;let s=0;for(let t=m;t<N;t++)s+=AD[t];VCpre=s*L[m];}
+    else{let a=0,c=0,p=0;for(let t=m+1;t<N;t++){a+=I[t]/Math.pow(1+S.wacc,(t-m)/12);c+=I[t]/L[t];p+=AD[t];}VA=a;VC=c*L[m];VCpre=p*L[m];}
+    const pr=probFrom(k);
+    return {k,m,gate:k===0?'G0':S.gates[k-1].code,prob:pr,VA,VB:VA*pr,VC,VCpre,costAcc:k===0?0:W[m],perMW:VC/S.mw,perMWpre:VCpre/S.mw};
+  });
+  // capital per milestone (Fluxo_Milestone)
+  const fm=cpM.map((m,k)=>{let g=0,rev=0;for(let t=0;t<=m&&t<N;t++){g+=R[t];rev+=G[t];}return {k,m,D:W[m],E:g,F:W[m]+g,J:rev,K:cps[k].VC};});
+  fm.forEach((r,k)=>{if(k<6){const nx=fm[k+1];r.G=nx.D-r.D;r.H=nx.E-r.E;r.I=r.G+r.H;r.Lv=Math.max(0,cps[k+1].VC-cps[k].VC);}else{r.G=0;r.H=0;r.I=0;r.Lv=0;}});
+  // funding (cash waterfall)
+  let cash=0, aportes=0; const aport=[], cashEnd=[];
+  for(let t=0;t<N;t++){const pre=cash+Ss[t]; const a=Math.max(0,-pre); aportes+=a; aport.push(a); cash=pre+a; cashEnd.push(cash);}
+  // balance sheet & cash-flow statement (Demonstrativos)
+  const bs={cash:cashEnd,asset:dre.asset,dep:[],dta:dre.dta,assets:[],liab:new Array(N).fill(0),landCap:new Array(N).fill(S.land),cashCap:[],retained:[],equity:[],check:[]};
+  let cR=0,cA=0,cNI=0;
+  for(let t=0;t<N;t++){cR+=R[t];cA+=aport[t];cNI+=dre.ni[t];bs.dep.push(cR);bs.cashCap.push(cA);bs.retained.push(cNI);
+    const as=cashEnd[t]+dre.asset[t]+cR+dre.dta[t];bs.assets.push(as);const eq=S.land+cA+cNI;bs.equity.push(eq);bs.check.push(as-eq);}
+  const cf={ni:dre.ni,ddta:dre.ddta.map(v=>-v),cogs:dre.cogs.map(v=>-v),cfo:[],capex:E.map((e,t)=>-(e-X[t])),guar:R.map(v=>-v),cfi:[],fin:aport,net:[],open:[],close:cashEnd};
+  for(let t=0;t<N;t++){const o=dre.ni[t]+cf.ddta[t]+cf.cogs[t];cf.cfo.push(o);const i=cf.capex[t]+cf.guar[t];cf.cfi.push(i);cf.net.push(o+i+aport[t]);cf.open.push(t?cashEnd[t-1]:0);}
+  // pre-tax cash curve
+  const Spre=AC.map((v,t)=>v-R[t]*(1-S.inclGar)); const Tpre=[];let cp=0;for(let t=0;t<N;t++){cp+=Spre[t];Tpre.push(cp);}
+  const minTp=Math.min(...Tpre), peakMp=Tpre.indexOf(minTp); let paybackPre=null; for(let t=peakMp+1;t<N;t++) if(Tpre[t]>=0){paybackPre=t;break;}
+  const guarRel=-R.filter(v=>v<0).reduce((a,b)=>a+b,0);
+  const fu={land:S.land,aportes,revenue:G74,guarRel,dev:G71,guarPost:G72,pis:taxesRev,trans:taxesTrans,ir:taxesIR,dist:cash};
+  fu.srcTot=fu.land+fu.aportes+fu.revenue+fu.guarRel; fu.useTot=fu.land+fu.dev+fu.guarPost+fu.pis+fu.trans+fu.ir+fu.dist;
+  const irrProj=irrMonthly(I), xirrEmp=xirr(V,days), irrProjPre=irrMonthly(AC), xirrEmpPre=xirr(AE,days);
+  const kpi={
+    revenue:G74, land:S.land, dev:G71, guar:G72, grossOut:G73, capital:G75,
+    npvA:sum(K), npvC:sum(M), irrProj, irrEmp:xirrEmp,
+    moic:(G74-(taxesRev+taxesTrans+taxesIR)+G72)/G73,
+    peak:-minT, peakMonth:peakM, payback,
+    costPerMW:G71/S.mw, costPerM2:G71*1000/S.landArea,
+    probTotal:prob.reduce((a,b)=>a*b,1),
+    taxes:taxesRev+taxesTrans+taxesIR, taxRev:taxesRev, taxTrans:taxesTrans, taxIR:taxesIR,
+    result:sum(I)-S.land,
+    opexTot:sum(X), opexToClose:X.slice(0,C+1).reduce((a,b)=>a+b,0),
+    opexPV_A:sum(X.map((x,t)=>x*J[t])), opexPV_C:sum(X.map((x,t)=>x/L[t])),
+    guarCostPV:-sum(R.map((r,t)=>r*J[t]))*S.inclGar,
+    maxEntry:sum(I.map((v,t)=>t>0?v/Math.pow(1+S.hurdle,t/12):0)),
+    sunkG1:fm[2].F,
+    // pre-tax
+    npvCpre:sum(AD), npvApre:sum(AC.map((v,t)=>v*J[t])), irrProjPre, irrEmpPre:xirrEmpPre,
+    moicPre:(G74+G72)/G73, resultPre:G74-G75,
+    maxEntryPre:sum(AC.map((v,t)=>t>0?v/Math.pow(1+S.hurdle,t/12):0)),
+    closeVal:cps[6].VC, closeValPre:cps[6].VCpre,
+    peakPre:-minTp, peakMonthPre:peakMp, paybackPre, revenueNet:G74-taxesRev-taxesTrans
+  };
+  return {S,N,months:[...Array(N).keys()],dates,days,B,Cr,E,F:E.map(v=>-v),G,H,I,J,K,L,M,R,S_:Ss,T,V,W,X,Y,Z,AA,AC,AD,AE,capexT,capexItemRows,opexRows:ox.rows,dre,cps,fm,fu,aport,bs,cf,Spre,Tpre,kpi};
+}
+
+// ---- derived analyses
+function breakevenPre(S){
+  const r=run(S,{price:1}); // revenue linear in price (H independent)
+  const DF=t=>1/Math.pow(1+S.wacc,t/12); let sF=0,sR=0,sH=0;
+  for(let t=0;t<r.N;t++){sF+=r.F[t]*DF(t);sR+=r.R[t]*DF(t);sH+=r.H[t]*DF(t);}
+  return -(sF-S.inclGar*sR)/(S.mw*sH);
+}
+function solvePrice(S,fn,target){ // find price s.t. fn(run)=target, monotone increasing in price
+  let lo=0,hi=50000; const f=p=>fn(run(S,{price:p}))-target;
+  if(f(lo)>0) return 0; if(f(hi)<0) return null;
+  for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(f(mid)>0)hi=mid;else lo=mid;}
+  return (lo+hi)/2;
+}
+function breakevenPost(S){return solvePrice(S,r=>r.kpi.npvA,0);}
+function breakevenPostC(S){return solvePrice(S,r=>r.kpi.npvC,0);}
+function hurdlePrice(S,h,m,r){
+  r=r||run(S);
+  const d0=r.dates[0]; let pv=-S.land, cum=0;
+  for(let t=0;t<=m&&t<r.N;t++){pv+=-r.E[t]/Math.pow(1+h,r.days[t]/365);cum+=r.E[t];}
+  const dm=dayDiff(d0,addMonths(S.baseDate,m));
+  const req=-pv*Math.pow(1+h,dm/365);
+  const q=1-S.taxRevenue-S.transCost; const base=S.land+cum;
+  const gross=req<=base? req/q : (req-S.irpj*base)/((1-S.irpj)*q);
+  return gross/S.mw;
+}
+
+if(typeof module!=='undefined') module.exports={defaultState,run,breakevenPre,breakevenPost,breakevenPostC,hurdlePrice,solvePrice,addMonths,NM};
+
+const I18N={
+pt:{
+ br:['Receita','Capital','Res. bruto','PIS/COFINS','Transação','IRPJ/CSLL','Res. líquido'],
+ adminOnly:'Somente o administrador cria, remove ou redefine usuários. Fale com ele para mudanças de acesso.', roleAdmin:'administrador', resetPw:'Redefinir senha', pwReset:'Senha redefinida', confirmDelUser:'Remover este usuário?', userRemoved:'Usuário removido', badUser:'Use de 2 a 32 caracteres: letras minúsculas, números, ponto, hífen ou sublinhado.', adminNote:'Somente o administrador vê esta lista e pode criar, remover ou redefinir senhas. A conta admin não pode ser removida.',
+ taxView:'Visão de impostos', taxDrag:'Efeito dos impostos', fcfPre:'FCF mensal sem impostos',
+ v_cmp:'Bruto x pós-impostos', cmpLead:'Compara o investimento na visão bruta (sem PIS/COFINS, custos de transação e IRPJ/CSLL) com a visão pós-impostos: valor, retorno, capital e quanto cada tributo retira do resultado.',
+ ofPre:'do valor bruto no M0', taxTotal:'Tributos totais', ofRev:'da receita bruta', effRate:'Alíquota efetiva sobre o ganho', effRateSub:'Tributos ÷ resultado econômico bruto', irrDrag:'Redução da TIR do empreendimento',
+ cmpTable:'Indicadores lado a lado', grossPre:'Bruto (sem impostos)', diff:'Diferença', bridge:'Da receita ao resultado líquido', cashCmp:'Caixa acumulado: bruto x pós-impostos', cpCmp:'Valor por milestone: bruto x pós-impostos', postOverPre:'Pós / bruto',
+ r_rev:'Receita bruta', r_capital:'Capital investido (terreno + custos)', r_resPre:'Resultado bruto', r_resPost:'Resultado líquido',
+ tab_dre:'DRE', tab_bs:'Balanço patrimonial', tab_cf:'Fluxo de caixa', tab_fu:'Fontes e usos', end60:'Mês 60',
+ bsLead:'Posição no fim de cada ano-calendário. O terreno entra como capital em espécie; os aportes em caixa cobrem as necessidades mês a mês; o caixa final é o disponível para distribuição.',
+ cfLead:'Fluxo de caixa anual pelo método indireto. A baixa do custo do ativo no closing é despesa sem caixa e volta no operacional; os gastos de desenvolvimento ficam no investimento.',
+ b_assets:'Ativo', b_cash:'Caixa', b_proj:'Ativo de projeto em desenvolvimento', b_dep:'Depósitos e garantias', b_dta:'Ativo fiscal diferido', b_totA:'Total do ativo', b_liab:'Passivo', b_taxp:'Tributos a pagar', b_totL:'Total do passivo', b_eq:'Patrimônio líquido', b_capLand:'Capital aportado – terreno', b_capCash:'Capital aportado – caixa', b_ret:'Lucros / prejuízos acumulados', b_totE:'Total do patrimônio líquido', b_totLE:'Total do passivo + PL', b_check:'Conferência (ativo − passivo − PL)',
+ f_ni:'Lucro líquido', f_ddta:'(−) Variação do ativo fiscal diferido', f_cogs:'(+) Custo do ativo vendido (sem caixa)', f_cfo:'Fluxo de caixa operacional', f_capex:'(−) Adições ao ativo de projeto', f_guar:'(−) Garantias postadas / (+) liberadas', f_cfi:'Fluxo de caixa de investimento', f_fin:'Aportes de capital em caixa', f_cff:'Fluxo de caixa de financiamento', f_net:'Variação líquida de caixa', f_open:'Caixa inicial', f_close:'Caixa final',
+ appSub:'Onda 1 · 250 MW · Valuation por milestone',
+ login:'Entrar', user:'Usuário', password:'Senha', loginBtn:'Entrar no modelo', badLogin:'Usuário ou senha incorretos. Verifique e tente novamente.',
+ loginNote:'Acesso inicial: usuário admin, senha powerland. Troque a senha em Acesso e usuários. A senha protege a tela neste navegador; ela não substitui o controle de compartilhamento do link.',
+ logout:'Sair', theme:'Tema', themeSys:'Sistema', themeLight:'Claro', themeDark:'Escuro', language:'Idioma', currency:'Moeda', fxRate:'Câmbio R$/US$',
+ g_analysis:'Análise', g_inputs:'Entradas', g_outputs:'Resultados', g_manage:'Gestão',
+ v_painel:'Painel', v_premissas:'Premissas', v_capex:'CAPEX', v_opex:'OPEX', v_fluxo:'Fluxo de caixa', v_valuation:'Valuation por milestone', v_capital:'Capital e fontes', v_dre:'Demonstrativos', v_sens:'Sensibilidade', v_cenarios:'Cenários', v_acesso:'Acesso e usuários',
+ scenario:'Cenário em uso', unsaved:'alterações não salvas', baseScenario:'Base V10',
+ k_m0:'Valor no M0 pós-impostos', k_m0pre:'Valor no M0 sem impostos', k_close:'Valor líquido no closing', k_irrEmp:'TIR do empreendimento', k_irrProj:'TIR do projeto (sem terreno)', k_moic:'MOIC líquido', k_peak:'Pico de capital', k_be:'Preço de equilíbrio', k_result:'Resultado econômico', k_prob:'Prob. de sucesso dos gates', k_permw:'por MW',
+ painelLead:'Mova os cursores de preço e CAPEX: todo o modelo (fluxo, impostos, valuation por milestone, capital e sensibilidades) é recalculado na hora.',
+ sl_price:'Preço de venda por MW', sl_capex:'CAPEX (multiplicador sobre a base)', sl_capexSub:'Aplica-se aos EAPs de custo com contingência; garantias e OPEX não mudam.',
+ reset:'Restaurar base', resetSliders:'Voltar preço e CAPEX à base',
+ ch_cp:'Valor do ativo por milestone', ch_cash:'Caixa acumulado e FCF mensal', post:'Pós-impostos', pre:'Sem impostos', cumCash:'Caixa acumulado (c/ garantias)', fcf:'FCF mensal pós-impostos',
+ timeline:'Gates de mercado e closing', month:'Mês', months:'meses', mo:'mês',
+ // premissas
+ premLead:'Todas as premissas do modelo. As alterações recalculam o modelo ao sair do campo.',
+ p_project:'Projeto e venda', p_fin:'Financeiro e retorno', p_risk:'Estrutura de risco por gate', p_tax:'Tributos', p_land:'Terreno (ativo existente)', p_fx:'Câmbio',
+ mw:'Capacidade da Onda 1', price:'Preço de venda por MW', closing:'Mês do closing / venda', baseDate:'Data-base (mês 0)', upfront:'Recebimento à vista no closing', term:'Prazo do saldo a receber',
+ wacc:'WACC nominal', hurdle:'TIR-alvo do investidor (hurdle)', contingency:'Contingência sobre o CAPEX', capexMult:'Multiplicador do CAPEX',
+ riskScen:'Cenário de risco', riskOn:'Com risco por gate', riskOff:'Sem risco (teto do valor)', inclGar:'Custo das garantias no valuation', garCash:'Garantias postadas em caixa', yes:'Sim', no:'Não',
+ gate:'Gate', stage:'Etapa', gmonth:'Mês de conclusão', prem:'Prêmio sobre WACC', rate:'Retorno exigido', prob:'Prob. de sucesso', probCum:'Prob. acumulada', activeNote:'Prêmios e probabilidades só valem no cenário com risco. O G5 conclui no mês do closing.',
+ taxRev:'PIS/COFINS sobre a receita', transCost:'Custos de transação', irpj:'IRPJ + CSLL (lucro real)', lossLimit:'Limite de compensação de prejuízo', dtaRecog:'Reconhecimento do IR diferido',
+ land:'Valor do terreno da Onda 1', landArea:'Área da Onda 1', landTotal:'Valor do terreno total', landTotalArea:'Área total do projeto', landM2:'Terreno por m²', landMW:'Terreno por MW',
+ fxNote:'Os valores são digitados em R$. A moeda de exibição e a taxa ficam no topo da tela e convertem todas as telas.',
+ // capex
+ capexLead:'Planilha mensal de desembolso por EAP, em R$ mil sem contingência. Cole blocos do Excel direto nas células. Meses após o closing ficam hachurados e não entram no modelo.',
+ addRow:'Adicionar EAP', delRow:'Excluir', confirmDel:'Excluir esta linha?', cancel:'Cancelar', confirm:'Confirmar', distribute:'Distribuir valor', total:'Total', from:'do mês', to:'ao mês', apply:'Aplicar', selectRow:'Selecione uma linha (clique no nome)',
+ eap:'EAP / entregável', recov:'Recuperável', totBase:'Total base', totCont:'Total c/ conting.', byGate:'Resumo por gate', capexItems:'EAPs de custo', guarantees:'Garantias recuperáveis', irreversible:'Custo irreversível c/ contingência',
+ // opex
+ opexLead:'Contas mensais de OPEX. Entram no fluxo de caixa sem contingência; contas marcadas "até o closing" acompanham o mês da venda.',
+ account:'Conta', monthly:'Valor mensal', start:'Início', end:'Fim', untilClose:'até o closing', adj:'Reajuste anual', horizon:'Total no horizonte', addAcc:'Adicionar conta', opexMonthly:'OPEX mensal',
+ // fluxo
+ fluxoLead:'Fluxo mensal nominal de 0 a 60 meses. FCF pós-impostos = receita − desembolsos − PIS/COFINS − custos de transação − IRPJ/CSLL − garantias (quando incluídas).',
+ c_date:'Data', c_stage:'Estágio', c_rate:'Taxa a.a.', c_out:'Desembolso + OPEX', c_guar:'Garantias', c_rev:'Receita', c_pis:'PIS/COFINS', c_ir:'IRPJ/CSLL', c_fcf:'FCF pós-imp.', c_L:'Fator de risco', c_pv:'PV @ estágio', c_cum:'Caixa acumulado', c_fcfpre:'FCF sem imp.', hideAfter:'Ocultar meses sem movimento após o closing',
+ // valuation
+ valLead:'Valor do ativo em cada ponto de controle. Método A: DCF ao WACC. Método B: A × probabilidade dos gates restantes. Método C (referência): taxas por estágio.',
+ cp:'CP', milestone:'Milestone', vA:'V_A · DCF @ WACC', vB:'V_B · esperado', vC:'V_C · por estágio', vCpre:'V_C sem impostos', costAcc:'Custo acumulado', vPerMW:'V_C por MW', creation:'Criação sobre o terreno',
+ summary:'Resumo com e sem impostos', metric:'Indicador', withTax:'Com impostos', noTax:'Sem impostos',
+ r_m0:'Valor no M0', r_close:'Valor no closing', r_irrEmp:'TIR do empreendimento (c/ terreno)', r_irrProj:'TIR do projeto (s/ terreno)', r_moic:'MOIC', r_result:'Resultado econômico', r_be:'Preço de equilíbrio (VPL @ WACC = 0)', r_maxEntry:'Entrada máxima no M0 p/ hurdle', r_closeMW:'Valor final por MW', r_ratio:'Valor final / equilíbrio',
+ cpNames:['Terreno – ativo existente (M0)','G0 concluído – due diligence aprovada','G1 concluído – estudos e viabilidade','G2 concluído – acesso à rede (GPA + CUST)','G3 concluído – licenças, alvarás e servidões','G4 concluído – terraplanagem e RTB','G5 concluído – conexão e closing'],
+ // capital
+ capLead:'Quanto capital é preciso antes de cada milestone e como o ciclo completo se fecha em fontes e usos.',
+ c_spent:'Desembolso até o CP', c_gnet:'Garantias líquidas', c_capTot:'Capital aportado até o CP', c_next:'Necessidade do próximo estágio', c_revTo:'Receita até o CP', c_val:'Valor do ativo', c_created:'Valor criado no estágio',
+ sources:'Fontes', uses:'Usos', s_land:'Terreno aportado em espécie', s_aport:'Aportes de caixa do investidor', s_rev:'Receita bruta', s_guar:'Liberação de garantias', u_land:'Terreno consumido no ativo vendido', u_dev:'Desenvolvimento + OPEX', u_guar:'Garantias postadas', u_pis:'Impostos sobre a receita', u_trans:'Custos de transação', u_ir:'IRPJ + CSLL', u_dist:'Distribuição / caixa final', check:'Conferência', capNeed:'Necessidade de capital por estágio', peakMonth:'Mês do pico', payback:'Payback (virada do caixa)', sunk:'Capital afundado até o fim do G1',
+ // dre
+ dreLead:'DRE anual (ano-calendário) no regime de lucro real, com prejuízo fiscal limitado a 30% do lucro. O CAPEX é capitalizado e baixado como custo do ativo no closing.',
+ d_rev:'Receita bruta', d_pis:'(−) Impostos sobre a receita', d_net:'Receita líquida', d_cogs:'(−) Custo do ativo vendido', d_gross:'Lucro bruto', d_opex:'(−) OPEX', d_ebitda:'EBITDA', d_trans:'(−) Custos de transação', d_ebt:'Resultado antes do IRPJ/CSLL', d_tax:'(−) IRPJ + CSLL corrente', d_dta:'(+/−) IR diferido', d_ni:'Lucro líquido', d_memo:'Memória fiscal', d_loss:'Prejuízo fiscal acumulado (fim)', d_taxable:'Lucro real tributável', d_asset:'Ativo em desenvolvimento (fim)', year:'Ano',
+ // sens
+ sensLead:'Pontos de equilíbrio, matrizes de preço × WACC, preço exigido por hurdle e prazo de closing, e impacto de cada premissa no valor M0.',
+ be_pre:'Equilíbrio sem impostos', be_post:'Equilíbrio pós-impostos (WACC)', be_c:'Equilíbrio pós-impostos (taxas por estágio)', margin:'Margem do preço atual',
+ mxTitle:'VPL no M0 @ WACC por preço e WACC', mxPost:'Pós-impostos', mxPre:'Sem impostos', priceMW:'Preço R$ mil/MW',
+ hurTitle:'Preço exigido por MW para atingir o hurdle', hurNote:'TIR sobre o empreendimento total (terreno + desenvolvimento + OPEX), 100% recebido no closing, IRPJ/CSLL sobre o ganho; garantias excluídas. Verde: o preço atual já atinge o hurdle.', closingM:'Closing (mês)',
+ torTitle:'Tornado – impacto no valor M0 pós-impostos', torLow:'Cenário baixo', torHigh:'Cenário alto',
+ t_price:'Preço por MW ±10%', t_capex:'CAPEX ±10%', t_wacc:'WACC ±1 p.p.', t_close:'Closing ±3 meses', t_cont:'Contingência 0% / 10%', t_tax:'PIS/COFINS 0% / 12%',
+ curveTitle:'Preço de equilíbrio pós-impostos × nível de CAPEX', capexPct:'CAPEX (% da base)',
+ // cenarios
+ scenLead:'Salve o conjunto completo de premissas, CAPEX e OPEX como cenário, carregue depois e compare lado a lado.',
+ scName:'Nome do cenário', scNotes:'Observações', save:'Salvar cenário', saveAs:'Salvar como novo', overwrite:'Atualizar cenário atual', load:'Carregar', compare:'Comparar', saved:'Cenário salvo', loaded:'Cenário carregado', deleted:'Cenário excluído',
+ store_db:'Na sua conta (claude.ai)', store_local:'Neste navegador', store_shared:'Compartilhado com a equipe', shareTeam:'Compartilhar com a equipe',
+ mine:'Meus cenários', team:'Cenários da equipe', none:'Nenhum cenário salvo ainda. Ajuste as premissas e use "Salvar cenário".',
+ cmpTitle:'Comparação de cenários', current:'Em uso', exportJ:'Exportar JSON', importJ:'Importar JSON', importBtn:'Importar', copy:'Copiar', copied:'Copiado', exportNote:'Copie o JSON abaixo para guardar ou enviar o cenário.', importNote:'Cole um JSON exportado ou escolha um arquivo .json.', badJson:'O conteúdo não é um cenário válido. Confira se colou o JSON completo.',
+ // acesso
+ accLead:'Usuários e senhas deste painel. Ficam guardados neste navegador e servem para bloquear a tela; quem tem o link do artefato continua precisando da permissão de compartilhamento do claude.ai.',
+ newUser:'Novo usuário', addUser:'Adicionar usuário', changePw:'Trocar senha', curPw:'Senha atual', newPw:'Nova senha', pwChanged:'Senha alterada', userAdded:'Usuário adicionado', userExists:'Esse usuário já existe.', pwShort:'Use pelo menos 6 caracteres.', wrongPw:'A senha atual não confere.', you:'você', remove:'Remover',
+ autosave:'O cenário em uso é guardado automaticamente neste navegador.',
+ modelNote:'Motor replicado da planilha V10 (Valuation_DCF, Demonstrativos, Fluxo_Milestone, Matrizes Equilíbrio e Hurdle). Monte Carlo e Valorizacao_Investidor não fazem parte do app.',
+ na:'n/d',
+ s_m0:'M0 pós-impostos', s_m0pre:'M0 sem impostos', s_irr:'TIR empreend.', s_moic:'MOIC', s_peak:'Pico de capital', s_be:'Equilíbrio'
+},
+en:{
+ br:['Revenue','Capital','Gross result','PIS/COFINS','Transaction','Income tax','Net result'],
+ adminOnly:'Only the administrator creates, removes or resets users. Ask them for access changes.', roleAdmin:'administrator', resetPw:'Reset password', pwReset:'Password reset', confirmDelUser:'Remove this user?', userRemoved:'User removed', badUser:'Use 2 to 32 characters: lowercase letters, digits, dot, hyphen or underscore.', adminNote:'Only the administrator sees this list and can create, remove or reset passwords. The admin account cannot be removed.',
+ taxView:'Tax view', taxDrag:'Tax effect', fcfPre:'Monthly pre-tax FCF',
+ v_cmp:'Gross vs post-tax', cmpLead:'Compares the investment on a gross basis (no PIS/COFINS, transaction costs or income tax) with the post-tax view: value, return, capital and how much each tax takes from the result.',
+ ofPre:'of gross M0 value', taxTotal:'Total taxes', ofRev:'of gross revenue', effRate:'Effective rate on the gain', effRateSub:'Taxes ÷ gross economic result', irrDrag:'Development IRR reduction',
+ cmpTable:'Metrics side by side', grossPre:'Gross (pre-tax)', diff:'Difference', bridge:'From revenue to net result', cashCmp:'Cumulative cash: gross vs post-tax', cpCmp:'Value by milestone: gross vs post-tax', postOverPre:'Post / gross',
+ r_rev:'Gross revenue', r_capital:'Capital invested (land + costs)', r_resPre:'Gross result', r_resPost:'Net result',
+ tab_dre:'Income statement', tab_bs:'Balance sheet', tab_cf:'Cash flow', tab_fu:'Sources & uses', end60:'Month 60',
+ bsLead:'Position at the end of each calendar year. Land enters as in-kind capital; cash contributions cover monthly needs; ending cash is what is available for distribution.',
+ cfLead:'Annual cash flow, indirect method. The cost of asset sold at closing is a non-cash expense added back in operations; development spend sits in investing.',
+ b_assets:'Assets', b_cash:'Cash', b_proj:'Project asset under development', b_dep:'Deposits and guarantees', b_dta:'Deferred tax asset', b_totA:'Total assets', b_liab:'Liabilities', b_taxp:'Taxes payable', b_totL:'Total liabilities', b_eq:'Equity', b_capLand:'Paid-in capital – land', b_capCash:'Paid-in capital – cash', b_ret:'Retained earnings / losses', b_totE:'Total equity', b_totLE:'Total liabilities + equity', b_check:'Check (assets − liabilities − equity)',
+ f_ni:'Net income', f_ddta:'(−) Change in deferred tax asset', f_cogs:'(+) Cost of asset sold (non-cash)', f_cfo:'Operating cash flow', f_capex:'(−) Additions to project asset', f_guar:'(−) Guarantees posted / (+) released', f_cfi:'Investing cash flow', f_fin:'Cash capital contributions', f_cff:'Financing cash flow', f_net:'Net change in cash', f_open:'Opening cash', f_close:'Ending cash',
+ appSub:'Wave 1 · 250 MW · Milestone valuation',
+ login:'Sign in', user:'Username', password:'Password', loginBtn:'Open the model', badLogin:'Wrong username or password. Check them and try again.',
+ loginNote:'First access: user admin, password powerland. Change it under Access & users. The password locks the screen in this browser; it does not replace the link sharing controls.',
+ logout:'Sign out', theme:'Theme', themeSys:'System', themeLight:'Light', themeDark:'Dark', language:'Language', currency:'Currency', fxRate:'FX R$/US$',
+ g_analysis:'Analysis', g_inputs:'Inputs', g_outputs:'Results', g_manage:'Manage',
+ v_painel:'Dashboard', v_premissas:'Assumptions', v_capex:'CAPEX', v_opex:'OPEX', v_fluxo:'Cash flow', v_valuation:'Milestone valuation', v_capital:'Capital & funding', v_dre:'Financial statements', v_sens:'Sensitivity', v_cenarios:'Scenarios', v_acesso:'Access & users',
+ scenario:'Active scenario', unsaved:'unsaved changes', baseScenario:'Base V10',
+ k_m0:'Post-tax value at M0', k_m0pre:'Pre-tax value at M0', k_close:'Net value at closing', k_irrEmp:'Development IRR', k_irrProj:'Project IRR (ex-land)', k_moic:'Net MOIC', k_peak:'Peak capital', k_be:'Breakeven price', k_result:'Economic result', k_prob:'Gate success probability', k_permw:'per MW',
+ painelLead:'Move the price and CAPEX sliders: the whole model (cash flow, taxes, milestone valuation, capital and sensitivities) recalculates instantly.',
+ sl_price:'Sale price per MW', sl_capex:'CAPEX (multiplier on base)', sl_capexSub:'Applies to cost WBS items with contingency; guarantees and OPEX are unchanged.',
+ reset:'Restore base', resetSliders:'Reset price and CAPEX to base',
+ ch_cp:'Asset value by milestone', ch_cash:'Cumulative cash and monthly FCF', post:'Post-tax', pre:'Pre-tax', cumCash:'Cumulative cash (incl. guarantees)', fcf:'Monthly post-tax FCF',
+ timeline:'Market gates and closing', month:'Month', months:'months', mo:'month',
+ premLead:'Every model assumption. Changes recalculate the model when you leave the field.',
+ p_project:'Project and sale', p_fin:'Finance and returns', p_risk:'Risk structure by gate', p_tax:'Taxes', p_land:'Land (existing asset)', p_fx:'Exchange rate',
+ mw:'Wave 1 capacity', price:'Sale price per MW', closing:'Closing / sale month', baseDate:'Base date (month 0)', upfront:'Paid upfront at closing', term:'Balance payment term',
+ wacc:'Nominal WACC', hurdle:'Investor target IRR (hurdle)', contingency:'CAPEX contingency', capexMult:'CAPEX multiplier',
+ riskScen:'Risk scenario', riskOn:'With gate risk', riskOff:'No risk (value ceiling)', inclGar:'Guarantee cost in valuation', garCash:'Guarantees posted in cash', yes:'Yes', no:'No',
+ gate:'Gate', stage:'Stage', gmonth:'Completion month', prem:'Premium over WACC', rate:'Required return', prob:'Success prob.', probCum:'Cumulative prob.', activeNote:'Premiums and probabilities apply only in the risk scenario. G5 completes in the closing month.',
+ taxRev:'PIS/COFINS on revenue', transCost:'Transaction costs', irpj:'Corporate income tax (IRPJ + CSLL)', lossLimit:'Tax-loss offset cap', dtaRecog:'Deferred tax recognition',
+ land:'Wave 1 land value', landArea:'Wave 1 area', landTotal:'Total land value', landTotalArea:'Total project area', landM2:'Land per m²', landMW:'Land per MW',
+ fxNote:'Values are entered in R$. The display currency and rate sit at the top of the screen and convert every view.',
+ capexLead:'Monthly spend by WBS item, in R$ thousand before contingency. Paste blocks from Excel straight into the cells. Months after closing are hatched and left out of the model.',
+ addRow:'Add WBS item', delRow:'Delete', confirmDel:'Delete this row?', cancel:'Cancel', confirm:'Confirm', distribute:'Spread amount', total:'Total', from:'from month', to:'to month', apply:'Apply', selectRow:'Select a row (click its name)',
+ eap:'WBS item / deliverable', recov:'Recoverable', totBase:'Base total', totCont:'Total incl. contingency', byGate:'Summary by gate', capexItems:'Cost WBS items', guarantees:'Recoverable guarantees', irreversible:'Sunk cost incl. contingency',
+ opexLead:'Monthly OPEX accounts. They enter the cash flow without contingency; accounts set to "until closing" follow the sale month.',
+ account:'Account', monthly:'Monthly amount', start:'Start', end:'End', untilClose:'until closing', adj:'Annual escalation', horizon:'Horizon total', addAcc:'Add account', opexMonthly:'Monthly OPEX',
+ fluxoLead:'Nominal monthly flow, months 0 to 60. Post-tax FCF = revenue − spend − PIS/COFINS − transaction costs − income tax − guarantees (when included).',
+ c_date:'Date', c_stage:'Stage', c_rate:'Rate p.a.', c_out:'Spend + OPEX', c_guar:'Guarantees', c_rev:'Revenue', c_pis:'PIS/COFINS', c_ir:'Income tax', c_fcf:'Post-tax FCF', c_L:'Risk factor', c_pv:'PV @ stage', c_cum:'Cumulative cash', c_fcfpre:'Pre-tax FCF', hideAfter:'Hide idle months after closing',
+ valLead:'Asset value at each control point. Method A: DCF at WACC. Method B: A × probability of the remaining gates. Method C (reference): stage-based rates.',
+ cp:'CP', milestone:'Milestone', vA:'V_A · DCF @ WACC', vB:'V_B · expected', vC:'V_C · stage rates', vCpre:'V_C pre-tax', costAcc:'Cost to date', vPerMW:'V_C per MW', creation:'Value over land',
+ summary:'Post-tax and pre-tax summary', metric:'Metric', withTax:'Post-tax', noTax:'Pre-tax',
+ r_m0:'Value at M0', r_close:'Value at closing', r_irrEmp:'Development IRR (incl. land)', r_irrProj:'Project IRR (ex-land)', r_moic:'MOIC', r_result:'Economic result', r_be:'Breakeven price (NPV @ WACC = 0)', r_maxEntry:'Max M0 entry for hurdle', r_closeMW:'Final value per MW', r_ratio:'Final value / breakeven',
+ cpNames:['Land – existing asset (M0)','G0 done – due diligence approved','G1 done – studies and feasibility','G2 done – grid access secured (GPA + CUST)','G3 done – licences, permits, easements','G4 done – earthworks and RTB','G5 done – connection and closing'],
+ capLead:'How much capital each milestone needs and how the full cycle closes in sources and uses.',
+ c_spent:'Spend to CP', c_gnet:'Net guarantees', c_capTot:'Capital in to CP', c_next:'Next-stage need', c_revTo:'Revenue to CP', c_val:'Asset value', c_created:'Value created in stage',
+ sources:'Sources', uses:'Uses', s_land:'Land contributed in kind', s_aport:'Investor cash contributions', s_rev:'Gross revenue', s_guar:'Guarantee releases', u_land:'Land consumed in asset sold', u_dev:'Development + OPEX', u_guar:'Guarantees posted', u_pis:'Revenue taxes', u_trans:'Transaction costs', u_ir:'Income tax', u_dist:'Distribution / ending cash', check:'Check', capNeed:'Capital need by stage', peakMonth:'Peak month', payback:'Payback (cash turns positive)', sunk:'Sunk capital through G1',
+ dreLead:'Annual income statement (calendar year) under Brazilian taxable-profit regime, tax losses capped at 30% of profit. CAPEX is capitalised and expensed as cost of asset sold at closing.',
+ d_rev:'Gross revenue', d_pis:'(−) Revenue taxes', d_net:'Net revenue', d_cogs:'(−) Cost of asset sold', d_gross:'Gross profit', d_opex:'(−) OPEX', d_ebitda:'EBITDA', d_trans:'(−) Transaction costs', d_ebt:'Profit before income tax', d_tax:'(−) Current income tax', d_dta:'(+/−) Deferred tax', d_ni:'Net income', d_memo:'Tax memo', d_loss:'Tax-loss carryforward (end)', d_taxable:'Taxable profit', d_asset:'Asset under development (end)', year:'Year',
+ sensLead:'Breakeven points, price × WACC matrices, price required by hurdle and closing month, and the impact of each assumption on M0 value.',
+ be_pre:'Pre-tax breakeven', be_post:'Post-tax breakeven (WACC)', be_c:'Post-tax breakeven (stage rates)', margin:'Current price margin',
+ mxTitle:'NPV at M0 @ WACC by price and WACC', mxPost:'Post-tax', mxPre:'Pre-tax', priceMW:'Price R$ k/MW',
+ hurTitle:'Price per MW required to reach the hurdle', hurNote:'IRR on the whole development (land + development + OPEX), 100% paid at closing, income tax on the gain; guarantees excluded. Green: the current price already reaches the hurdle.', closingM:'Closing (month)',
+ torTitle:'Tornado – impact on post-tax M0 value', torLow:'Low case', torHigh:'High case',
+ t_price:'Price per MW ±10%', t_capex:'CAPEX ±10%', t_wacc:'WACC ±1 pp', t_close:'Closing ±3 months', t_cont:'Contingency 0% / 10%', t_tax:'PIS/COFINS 0% / 12%',
+ curveTitle:'Post-tax breakeven price × CAPEX level', capexPct:'CAPEX (% of base)',
+ scenLead:'Save the full set of assumptions, CAPEX and OPEX as a scenario, load it later and compare side by side.',
+ scName:'Scenario name', scNotes:'Notes', save:'Save scenario', saveAs:'Save as new', overwrite:'Update active scenario', load:'Load', compare:'Compare', saved:'Scenario saved', loaded:'Scenario loaded', deleted:'Scenario deleted',
+ store_db:'In your account (claude.ai)', store_local:'In this browser', store_shared:'Shared with the team', shareTeam:'Share with the team',
+ mine:'My scenarios', team:'Team scenarios', none:'No saved scenarios yet. Adjust the assumptions and use "Save scenario".',
+ cmpTitle:'Scenario comparison', current:'Active', exportJ:'Export JSON', importJ:'Import JSON', importBtn:'Import', copy:'Copy', copied:'Copied', exportNote:'Copy the JSON below to keep or send the scenario.', importNote:'Paste an exported JSON or choose a .json file.', badJson:'That is not a valid scenario. Check that you pasted the whole JSON.',
+ accLead:'Users and passwords for this dashboard. They are stored in this browser and lock the screen; anyone with the artifact link still needs claude.ai sharing permission.',
+ newUser:'New user', addUser:'Add user', changePw:'Change password', curPw:'Current password', newPw:'New password', pwChanged:'Password changed', userAdded:'User added', userExists:'That user already exists.', pwShort:'Use at least 6 characters.', wrongPw:'The current password does not match.', you:'you', remove:'Remove',
+ autosave:'The active scenario is saved automatically in this browser.',
+ modelNote:'Engine replicated from the V10 workbook (Valuation_DCF, Demonstrativos, Fluxo_Milestone, Matrizes Equilíbrio and Hurdle). Monte Carlo and Valorizacao_Investidor are not part of the app.',
+ na:'n/a',
+ s_m0:'Post-tax M0', s_m0pre:'Pre-tax M0', s_irr:'Dev. IRR', s_moic:'MOIC', s_peak:'Peak capital', s_be:'Breakeven'
+}};
+
+/* ================= app state ================= */
+const BASE=defaultState();
+let S=clone(BASE), R=null, BE={}, LANG='pt', VIEW='painel', CHARTS=[], ACTIVE={id:null,name:null,store:null}, DIRTY=false;
+let SEL_ROW=null, HIDE_AFTER=true, MX_MODE='post', TAXM='post', DRE_TAB='dre';
+function clone(o){return JSON.parse(JSON.stringify(o));}
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+const MEMSS={};
+function ssGet(k){try{const v=sessionStorage.getItem(k);if(v!=null)return v;}catch(e){}return MEMSS[k]??null;}
+function ssSet(k,v){if(v==null)delete MEMSS[k];else MEMSS[k]=v;try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v);}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function t(k){return (I18N[LANG]&&I18N[LANG][k]!=null)?I18N[LANG][k]:(I18N.pt[k]!=null?I18N.pt[k]:k);}
+function nm(o){return (LANG==='en'?o.en:o.pt)||o.pt||o.en||'';}
+const loc=()=>LANG==='pt'?'pt-BR':'en-US';
+const fx=v=>S.currency==='USD'?v/(S.fxRate||1):v;
+const cur=()=>S.currency==='USD'?'US$':'R$';
+const mi=()=>LANG==='pt'?'mi':'M';
+const uK=()=>LANG==='pt'?`${cur()} mil`:`${cur()} k`;
+function nf(v,d=0){if(v==null||!isFinite(v))return '–';return new Intl.NumberFormat(loc(),{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);}
+const fK=(v,d=0)=>nf(fx(v),d);
+const fM=(v,d=1)=>v==null?'–':(Math.abs(v)<1e-6&&(v=0),0)||`${cur()} ${nf(fx(v)/1000,d)} ${mi()}`;
+const fPMW=v=>v==null?'–':`${cur()} ${nf(fx(v)/1000,2)} ${mi()}/MW`;
+const pct=(v,d=1)=>v==null||!isFinite(v)?'–':`${nf(v*100,d)}%`;
+const xx=v=>v==null?'–':`${nf(v,2)}x`;
+const MON={pt:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']};
+function mdate(m){const d=addMonths(S.baseDate,m);return `${MON[LANG][d.getUTCMonth()]}/${String(d.getUTCFullYear()).slice(2)}`;}
+
+/* ================= calc ================= */
+function calc(){
+  S.gates[5].month=S.closing;
+  R=run(S);
+  BE={pre:breakevenPre(S),post:breakevenPost(S),c:breakevenPostC(S)};
+}
+function changed(opts={}){
+  DIRTY=true; calc(); lsSet('pl_work',{S,ACTIVE,DIRTY});
+  renderStrip(); renderTop();
+  if(opts.rerender!==false && ['painel','comparacao','fluxo','valuation','capital','dre','sens','cenarios'].includes(VIEW)) renderView(true);
+}
+
+/* ================= auth ================= */
+async function hash(s){
+  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('powerland|'+s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+  catch(e){let h=2166136261;for(const c of 'powerland|'+s){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return 'f'+(h>>>0).toString(16);}
+}
+const SEED_USERS=[{"u":"admin","h":"36de4436762636ea433da3006ff88630bfe37e3e4a897a319b47d03c206e7b6b"},{"u":"upside","h":"36de4436762636ea433da3006ff88630bfe37e3e4a897a319b47d03c206e7b6b"},{"u":"breal","h":"6152d64380791e43e6ff879ab042b6385a63f0f658adbf253d38529aa401af5a"},{"u":"visitante","h":"85c92ed62f1fc3ea946fea9ae99db14b32ab5b0b39c8977b2912de5e7e84eabd"}];
+const USERS_V=2;
+async function users(){let u=lsGet('pl_users',null);if(!u||!u.length||lsGet('pl_users_v',0)!==USERS_V){u=JSON.parse(JSON.stringify(SEED_USERS));lsSet('pl_users',u);lsSet('pl_users_v',USERS_V);}return u;}
+async function doLogin(e){
+  e.preventDefault();
+  const u=$('#lu').value.trim().toLowerCase(), p=$('#lp').value, list=await users(), h=await hash(p);
+  if(list.find(x=>x.u===u&&x.h===h)){ssSet('pl_session',u);boot();}
+  else{$('#lerr').textContent=t('badLogin');}
+}
+function logout(){ssSet('pl_session',null);showLogin();}
+function showLogin(){
+  $('#app').hidden=true; const L=$('#login'); L.hidden=false;
+  L.innerHTML=`<form class="login-card" id="lform" autocomplete="on">
+    <div class="brand">${MARK}<div><div class="brand-name">POWERLAND</div><div class="brand-sub">${t('appSub')}</div></div></div>
+    <h1>${t('login')}</h1>
+    <div class="field"><label for="lu">${t('user')}</label><input id="lu" autocomplete="username" required></div>
+    <div class="field"><label for="lp">${t('password')}</label><input id="lp" type="password" autocomplete="current-password" required></div>
+    <div class="err" id="lerr" role="alert"></div>
+    <button class="btn primary" type="submit">${t('loginBtn')}</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${langSeg('ll')}</div>
+</form>`;
+  $('#lform').addEventListener('submit',doLogin);
+  bindLang('ll',showLogin);
+  setTimeout(()=>{const p=$('#lu');p&&p.focus();},50);
+}
+const MARK=`<svg class="brand-mark" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="7" fill="var(--accent)"/><path d="M17 6l-6 10h5l-2 12 9-14h-5l3-8z" fill="var(--accent-ink)"/></svg>`;
+function langSeg(id){return `<div class="seg" role="group" aria-label="${t('language')}" id="${id}"><button type="button" data-l="pt" aria-pressed="${LANG==='pt'}">PT</button><button type="button" data-l="en" aria-pressed="${LANG==='en'}">EN</button></div>`;}
+function bindLang(id,after){$$(`#${id} button`).forEach(b=>b.onclick=()=>{LANG=b.dataset.l;lsSet('pl_lang',LANG);document.documentElement.lang=LANG==='pt'?'pt-BR':'en';after();});}
+
+/* ================= shell ================= */
+const ICONS={
+ painel:'<path d="M3 13h4v6H3zM10 8h4v11h-4zM17 4h4v15h-4z"/>',
+ comparacao:'<path d="M4 20V9M9 20V4M15 20v-7M20 20v-11"/><path d="M3 20h18"/>',
+ premissas:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+ capex:'<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+ opex:'<path d="M12 3v18M7 7h7a3 3 0 010 6H9a3 3 0 000 6h8"/>',
+ fluxo:'<path d="M3 17l5-5 4 3 8-9"/><path d="M15 6h5v5"/>',
+ valuation:'<path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/>',
+ capital:'<circle cx="12" cy="12" r="8"/><path d="M12 4v8l6 4"/>',
+ dre:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h4"/>',
+ sens:'<path d="M4 4v16h16"/><path d="M7 15l3-4 3 2 5-7"/>',
+ cenarios:'<path d="M5 4h10l4 4v12H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+ acesso:'<rect x="5" y="10" width="14" height="10" rx="1"/><path d="M8 10V7a4 4 0 018 0v3"/>'
+};
+const NAV=[['g_analysis',['painel','comparacao']],['g_inputs',['premissas','capex','opex']],['g_outputs',['fluxo','valuation','capital','dre','sens']],['g_manage',['cenarios','acesso']]];
+const VKEY={painel:'v_painel',comparacao:'v_cmp',premissas:'v_premissas',capex:'v_capex',opex:'v_opex',fluxo:'v_fluxo',valuation:'v_valuation',capital:'v_capital',dre:'v_dre',sens:'v_sens',cenarios:'v_cenarios',acesso:'v_acesso'};
+function renderShell(){
+  const A=$('#app');
+  A.innerHTML=`<aside id="side"><div class="brand">${MARK}<div><div class="brand-name">POWERLAND</div><div class="brand-sub">${t('appSub')}</div></div></div>
+  <nav class="menu" aria-label="Menu">${NAV.map(([g,vs])=>`<div class="grp">${t(g)}</div>`+vs.map(v=>`<a href="#${v}" data-v="${v}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[v]}</svg>${t(VKEY[v])}</a>`).join('')).join('')}</nav>
+  <div class="side-foot"><div>${esc(ssGet('pl_session')||'')}</div><button class="btn sm" id="bout" type="button">${t('logout')}</button></div></aside>
+  <div id="scrim" hidden></div>
+  <div id="main"><header class="topbar" id="top"></header><div class="strip" id="strip"></div><main id="view"></main></div>`;
+  $('#bout').onclick=logout;
+  $('#scrim').onclick=()=>toggleNav(false);
+  $$('nav.menu a').forEach(a=>a.addEventListener('click',()=>toggleNav(false)));
+  renderTop(); renderStrip();
+}
+function toggleNav(open){$('#app').classList.toggle('open',open);$('#scrim').hidden=!open;}
+function renderTop(){
+  const th=lsGet('pl_theme','system');
+  $('#top').innerHTML=`<button class="btn sm" id="burger" type="button" aria-label="Menu">☰</button>
+   <div class="scenrow"><div class="scen"><span class="eyebrow">${t('scenario')}</span><b>${esc(ACTIVE.name||t('baseScenario'))}${DIRTY?` <span class="badge">${t('unsaved')}</span>`:''}</b></div>
+    <div class="seg taxseg" role="group" aria-label="${t('taxView')}" id="segtax" title="${t('taxView')}"><button type="button" data-x="post" aria-pressed="${TAXM==='post'}">${t('post')}</button><button type="button" data-x="pre" aria-pressed="${TAXM==='pre'}">${t('pre')}</button></div></div>
+   <div class="tools">
+    <div class="seg" role="group" aria-label="${t('currency')}" id="segcur"><button type="button" data-c="BRL" aria-pressed="${S.currency!=='USD'}">R$</button><button type="button" data-c="USD" aria-pressed="${S.currency==='USD'}">US$</button></div>
+    <label class="fx" for="fxr">${t('fxRate')} <input id="fxr" type="number" step="0.01" min="0.01" value="${S.fxRate}"></label>
+    ${langSeg('segl')}
+    <div class="seg" role="group" aria-label="${t('theme')}" id="segth"><button type="button" data-t="system" aria-pressed="${th==='system'}">${t('themeSys')}</button><button type="button" data-t="light" aria-pressed="${th==='light'}">${t('themeLight')}</button><button type="button" data-t="dark" aria-pressed="${th==='dark'}">${t('themeDark')}</button></div>
+   </div>`;
+  $('#burger').onclick=()=>toggleNav(!$('#app').classList.contains('open'));
+  $$('#segtax button').forEach(b=>b.onclick=()=>{TAXM=b.dataset.x;lsSet('pl_taxmode',TAXM);renderTop();renderStrip();renderView(true);});
+  $$('#segcur button').forEach(b=>b.onclick=()=>{S.currency=b.dataset.c;lsSet('pl_work',{S,ACTIVE,DIRTY});renderTop();renderStrip();renderView(true);});
+  $('#fxr').onchange=e=>{const v=+e.target.value;if(v>0){S.fxRate=v;lsSet('pl_work',{S,ACTIVE,DIRTY});renderStrip();if(S.currency==='USD')renderView(true);}};
+  bindLang('segl',()=>{renderShell();route();});
+  $$('#segth button').forEach(b=>b.onclick=()=>{applyTheme(b.dataset.t);renderTop();renderView(true);});
+}
+function applyTheme(th){lsSet('pl_theme',th);const r=document.documentElement;if(th==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',th);}
+function renderStrip(){
+  const k=R.kpi;
+  const pre=TAXM==='pre';
+  const cells=pre?[[t('s_m0pre'),fM(k.npvCpre)],[t('s_m0'),fM(k.npvC)],[t('s_irr'),pct(k.irrEmpPre)],[t('s_moic'),xx(k.moicPre)],[t('s_peak'),fM(k.peakPre)],[t('s_be'),fPMW(BE.pre)]]
+   :[[t('s_m0'),fM(k.npvC)],[t('s_m0pre'),fM(k.npvCpre)],[t('s_irr'),pct(k.irrEmp)],[t('s_moic'),xx(k.moic)],[t('s_peak'),fM(k.peak)],[t('s_be'),fPMW(BE.post)]];
+  $('#strip').innerHTML=cells.map(([a,b])=>`<div><div class="k">${a}</div><div class="v">${b}</div></div>`).join('');
+}
+function toast(msg){const el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2400);}
+
+/* ================= router ================= */
+function route(){
+  const h=(location.hash||'').replace('#','');
+  VIEW=VKEY[h]?h:'painel';
+  $$('nav.menu a').forEach(a=>a.setAttribute('aria-current',a.dataset.v===VIEW?'page':'false'));
+  renderView(false);
+}
+function destroyCharts(){CHARTS.forEach(c=>{try{c.destroy();}catch(e){}});CHARTS=[];}
+function renderView(keepScroll){
+  const y=window.scrollY; destroyCharts();
+  const fn=VIEWS[VIEW]; const V=$('#view'); V.innerHTML=fn.html(); fn.bind&&fn.bind();
+  if(keepScroll) window.scrollTo(0,y); else window.scrollTo(0,0);
+}
+function head(key,lead,extra=''){return `<div class="vhead"><div><span class="eyebrow">${t('appSub')}</span><h1>${t(key)}</h1>${lead?`<p>${t(lead)}</p>`:''}</div>${extra}</div>`;}
+
+/* ================= charts ================= */
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function chartDefaults(){
+  if(!window.Chart) return false;
+  Chart.defaults.font.family=css('--f-body')||'system-ui';Chart.defaults.font.size=11;Chart.defaults.color=css('--muted');Chart.defaults.borderColor=css('--line');
+  return true;
+}
+function mkChart(id,cfg){if(!chartDefaults())return;const el=document.getElementById(id);if(!el)return;CHARTS.push(new Chart(el,cfg));}
+const axisM=()=>({ticks:{callback:v=>nf(fx(v)/1000,0)},grid:{color:css('--line')}});
+
+/* ================= views ================= */
+const VIEWS={};
+
+function painelTiles(){
+  const k=R.kpi, p=k.probTotal, pre=TAXM==='pre', be=pre?BE.pre:BE.post;
+  const margin=be?S.price/be-1:null, tag=`<span class="pill ${pre?'neu':'pos'}">${pre?t('pre'):t('post')}</span>`;
+  return pre?[
+    [`${t('r_m0')} ${tag}`,fM(k.npvCpre),`${fPMW(k.npvCpre/S.mw)} · ${S.risk===1?t('riskOn'):t('riskOff')}`,'hero'],
+    [t('r_close'),fM(k.closeValPre),fPMW(k.closeValPre/S.mw)],
+    [t('k_irrEmp'),pct(k.irrEmpPre),`${t('k_irrProj')}: ${pct(k.irrProjPre)}`],
+    [t('r_moic'),xx(k.moicPre),`${t('k_result')}: ${fM(k.resultPre)}`],
+    [t('k_m0'),fM(k.npvC),`${t('taxDrag')}: ${fM(k.npvCpre-k.npvC)}`],
+    [t('k_peak'),fM(k.peakPre),`${t('peakMonth')}: ${k.peakMonthPre} · ${t('payback')}: ${k.paybackPre??'–'}`],
+    [t('k_be'),fPMW(be),`${t('margin')}: <span class="pill ${margin>=0?'pos':'neg'}">${pct(margin)}</span>`],
+    [t('k_prob'),pct(p),`WACC ${pct(S.wacc)} · hurdle ${pct(S.hurdle,0)}`]
+  ]:[
+    [`${t('k_m0')} ${tag}`,fM(k.npvC),`${fPMW(k.npvC/S.mw)} · ${S.risk===1?t('riskOn'):t('riskOff')}`,'hero'],
+    [t('k_close'),fM(k.closeVal),fPMW(k.closeVal/S.mw)],
+    [t('k_irrEmp'),pct(k.irrEmp),`${t('k_irrProj')}: ${pct(k.irrProj)}`],
+    [t('k_moic'),xx(k.moic),`${t('k_result')}: ${fM(k.result)}`],
+    [t('k_m0pre'),fM(k.npvCpre),`${t('r_irrEmp')}: ${pct(k.irrEmpPre)}`],
+    [t('k_peak'),fM(k.peak),`${t('peakMonth')}: ${k.peakMonth} · ${t('payback')}: ${k.payback??'–'}`],
+    [t('k_be'),fPMW(be),`${t('margin')}: <span class="pill ${margin>=0?'pos':'neg'}">${pct(margin)}</span>`],
+    [t('k_prob'),pct(p),`WACC ${pct(S.wacc)} · hurdle ${pct(S.hurdle,0)}`]
+  ];
+}
+VIEWS.painel={html(){
+  const k=R.kpi, tiles=painelTiles(), beS=TAXM==='pre'?BE.pre:BE.post;
+  const pr=S.price, cm=S.capexMult;
+  return head('v_painel','painelLead')+
+  `<section class="panel"><div class="sliders">
+    <div class="sl"><div class="top"><label for="s_price">${t('sl_price')}</label><output id="o_price">${fPMW(pr)}</output></div>
+      <input type="range" id="s_price" min="1200" max="10000" step="25" value="${pr}"><div class="scale"><span>${fPMW(1200)}</span><span>${fPMW(10000)}</span></div>
+      <div class="sub">${t('price')}: ${nf(fx(pr),0)} ${uK()}/MW · ${t('k_be')}: ${fPMW(beS)}</div></div>
+    <div class="sl"><div class="top"><label for="s_capex">${t('sl_capex')}</label><output id="o_capex">${nf(cm*100,0)}%</output></div>
+      <input type="range" id="s_capex" min="0.5" max="1.5" step="0.01" value="${cm}"><div class="scale"><span>50%</span><span>100%</span><span>150%</span></div>
+      <div class="sub">${t('sl_capexSub')} ${t('irreversible')}: ${fM(k.dev)}</div></div>
+   </div><div><button class="btn sm" id="b_reset" type="button">${t('resetSliders')}</button></div></section>
+  <section class="tiles">${tiles.map(([a,b,c,h])=>`<div class="tile ${h||''}"><div class="k">${a}</div><div class="v">${b}</div><div class="s">${c}</div></div>`).join('')}</section>
+  <section class="panel"><header><h2>${t('timeline')}</h2><span class="muted">${S.closing} ${t('months')} · ${mdate(0)} → ${mdate(S.closing)}</span></header>${timeline()}</section>
+  <div class="grid2">
+   <section class="panel"><header><h2>${t('ch_cp')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_cp"></canvas></div></section>
+   <section class="panel"><header><h2>${t('ch_cash')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_cash"></canvas></div></section>
+  </div>`;
+},bind(){
+  const sp=$('#s_price'),sc=$('#s_capex'); let raf=0;
+  const live=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{S.price=+sp.value;S.capexMult=+sc.value;DIRTY=true;calc();renderStrip();renderTop();
+    $('#o_price').textContent=fPMW(S.price);$('#o_capex').textContent=nf(S.capexMult*100,0)+'%';updatePainel();});};
+  sp.addEventListener('input',live);sc.addEventListener('input',live);
+  const commit=()=>{lsSet('pl_work',{S,ACTIVE,DIRTY});renderView(true);};
+  sp.addEventListener('change',commit);sc.addEventListener('change',commit);
+  $('#b_reset').onclick=()=>{S.price=BASE.price;S.capexMult=1;changed();};
+  drawPainelCharts();
+}};
+function updatePainel(){ // light refresh during drag
+  const tl=painelTiles();
+  $$('.tiles .tile').forEach((el,i)=>{if(!tl[i])return;el.querySelector('.v').textContent=tl[i][1];el.querySelector('.s').innerHTML=tl[i][2];});
+  const c1=CHARTS[0],c2=CHARTS[1],pre=TAXM==='pre',n=lastM()+1;
+  if(c1){const a=R.cps.map(c=>c.VC),b=R.cps.map(c=>c.VCpre);c1.data.datasets[0].data=pre?b:a;c1.data.datasets[1].data=pre?a:b;c1.update('none');}
+  if(c2){c2.data.datasets[0].data=(pre?R.Tpre:R.T).slice(0,n);c2.data.datasets[1].data=(pre?R.AC:R.I).slice(0,n);c2.update('none');}
+}
+function lastM(){return Math.min(60,S.closing+Math.max(1,S.termMonths||1)+2);}
+function timeline(){
+  const max=Math.max(S.closing,...S.gates.slice(0,5).map(g=>+g.month))+2;
+  const pos=m=>`${(m/max*100).toFixed(2)}%`;
+  const items=S.gates.map((g,i)=>{const m=i===5?S.closing:+g.month;return `<div class="g ${i===5?'close':''}" style="left:${pos(m)}" title="${esc(nm(g))}"><b>${g.code}</b><i></i><span class="m">${t('mo')} ${m}</span></div>`;}).join('');
+  return `<div class="timeline"><div class="axis"></div><div class="done" style="width:${pos(S.closing)}"></div>${items}</div>`;
+}
+function drawPainelCharts(){
+  const acc=css('--accent'),st=css('--steel'),pre=TAXM==='pre';
+  const dsPost={label:t('post'),data:R.cps.map(c=>c.VC),borderRadius:3},dsPre={label:t('pre'),data:R.cps.map(c=>c.VCpre),borderRadius:3};
+  const first=pre?dsPre:dsPost,second=pre?dsPost:dsPre;first.backgroundColor=acc;second.backgroundColor=st;
+  mkChart('c_cp',{type:'bar',data:{labels:R.cps.map((c,i)=>`CP${i} · ${c.m}`),datasets:[first,second]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fM(c.raw)}`}}},scales:{y:axisM(),x:{grid:{display:false}}}}});
+  const n=lastM()+1;
+  mkChart('c_cash',{data:{labels:R.months.slice(0,n),datasets:[
+    {type:'line',label:`${t('cumCash')} · ${pre?t('pre'):t('post')}`,data:(pre?R.Tpre:R.T).slice(0,n),borderColor:acc,backgroundColor:acc+'22',fill:true,pointRadius:0,tension:.15,yAxisID:'y'},
+    {type:'bar',label:pre?t('fcfPre'):t('fcf'),data:(pre?R.AC:R.I).slice(0,n),backgroundColor:st,yAxisID:'y'}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{title:i=>`${t('month')} ${i[0].label} · ${mdate(+i[0].label)}`,label:c=>`${c.dataset.label}: ${fM(c.raw)}`}}},scales:{y:axisM(),x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
+}
+
+/* ---------- Premissas */
+function inp(id,key,val,unit,opt={}){
+  return `<div class="field"><label for="${id}">${t(key)}</label><div class="inwrap"><input id="${id}" data-k="${opt.k||key}" data-pct="${opt.pct?1:0}" type="${opt.type||'number'}" step="${opt.step||'any'}" ${opt.min!=null?`min="${opt.min}"`:''} ${opt.max!=null?`max="${opt.max}"`:''} value="${val}" ${opt.ro?'readonly':''}><span>${unit}</span></div>${opt.hint?`<span class="hint">${opt.hint}</span>`:''}</div>`;
+}
+function sel(id,key,val,opts){return `<div class="field"><label for="${id}">${t(key)}</label><select id="${id}" data-k="${key}">${opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`).join('')}</select></div>`;}
+const P=v=>+(v*100).toFixed(6);
+VIEWS.premissas={html(){
+  const g=S.gates, riskOn=S.risk===1; let cum=1;
+  const rows=g.map((x,i)=>{const pp=riskOn?x.prob:1;cum*=pp;return `<tr><td><b>${x.code}</b></td><td>${esc(nm(x))}</td>
+   <td class="n">${i===5?`<span class="num">${S.closing}</span>`:`<input class="cell" data-g="${i}" data-f="month" type="number" min="0" max="60" step="1" value="${x.month}">`}</td>
+   <td class="n"><input class="cell" data-g="${i}" data-f="prem" type="number" step="0.1" value="${P(x.prem)}"></td>
+   <td class="n num">${pct(S.wacc+(riskOn?x.prem:0))}</td>
+   <td class="n"><input class="cell" data-g="${i}" data-f="prob" type="number" step="0.1" min="0" max="100" value="${P(x.prob)}"></td>
+   <td class="n num">${pct(cum)}</td></tr>`;}).join('');
+  return head('v_premissas','premLead')+
+  `<section class="panel"><h2>${t('p_project')}</h2><div class="form">
+    ${inp('i_mw','mw',S.mw,'MW',{min:1})}
+    ${inp('i_price','price',S.price,'R$ mil/MW',{min:0,hint:fPMW(S.price)})}
+    ${inp('i_closing','closing',S.closing,t('mo'),{min:12,max:54,step:1,hint:mdate(S.closing)})}
+    ${inp('i_base','baseDate',S.baseDate,'',{type:'date',k:'baseDate'})}
+    ${inp('i_up','upfront',P(S.upfront),'%',{pct:1,min:0,max:100})}
+    ${inp('i_term','term',S.termMonths,t('months'),{min:1,max:24,step:1,k:'termMonths'})}
+  </div></section>
+  <section class="panel"><h2>${t('p_fin')}</h2><div class="form">
+    ${inp('i_wacc','wacc',P(S.wacc),'% a.a.',{pct:1,step:0.1})}
+    ${inp('i_hurdle','hurdle',P(S.hurdle),'% a.a.',{pct:1,step:0.5})}
+    ${inp('i_cont','contingency',P(S.contingency),'%',{pct:1,step:0.5})}
+    ${inp('i_mult','capexMult',P(S.capexMult),'%',{pct:1,step:1})}
+  </div></section>
+  <section class="panel"><h2>${t('p_risk')}</h2><div class="form">
+    ${sel('i_risk','risk',S.risk,[[1,t('riskOn')],[2,t('riskOff')]])}
+    ${sel('i_gar','inclGar',S.inclGar,[[1,t('yes')],[0,t('no')]])}
+    ${inp('i_garc','garCash',P(S.garCash),'%',{pct:1,min:0,max:100})}
+  </div>
+  <div class="tw"><table><thead><tr><th>${t('gate')}</th><th>${t('stage')}</th><th class="n">${t('gmonth')}</th><th class="n">${t('prem')} (p.p.)</th><th class="n">${t('rate')}</th><th class="n">${t('prob')} (%)</th><th class="n">${t('probCum')}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note">${t('activeNote')}</p></section>
+  <section class="panel"><h2>${t('p_tax')}</h2><div class="form">
+    ${inp('i_tr','taxRev',P(S.taxRevenue),'%',{pct:1,step:0.05,k:'taxRevenue'})}
+    ${inp('i_tc','transCost',P(S.transCost),'%',{pct:1,step:0.1})}
+    ${inp('i_ir','irpj',P(S.irpj),'%',{pct:1,step:0.5})}
+    ${inp('i_ll','lossLimit',P(S.lossLimit),'%',{pct:1,step:1})}
+    ${inp('i_dta','dtaRecog',P(S.dtaRecog),'%',{pct:1,step:1})}
+  </div></section>
+  <section class="panel"><h2>${t('p_land')}</h2><div class="form">
+    ${inp('i_land','land',S.land,'R$ mil',{min:0,hint:fM(S.land)})}
+    ${inp('i_la','landArea',S.landArea,'m²',{min:1})}
+    ${inp('i_lt','landTotal',S.landTotal,'R$ mil',{min:0})}
+    ${inp('i_lta','landTotalArea',S.landTotalArea,'m²',{min:1})}
+    <div class="field"><label>${t('landM2')}</label><div class="num">${cur()} ${nf(fx(S.land*1000/S.landArea),2)} /m² · ${t('landTotal')}: ${cur()} ${nf(fx(S.landTotal*1000/S.landTotalArea),2)} /m²</div></div>
+    <div class="field"><label>${t('landMW')}</label><div class="num">${fK(S.land/S.mw)} ${uK()}/MW</div></div>
+  </div></section>
+  <section class="panel"><h2>${t('p_fx')}</h2><div class="form">
+    ${inp('i_fx','fxRate',S.fxRate,'R$/US$',{min:0.01,step:0.01,k:'fxRate'})}
+    ${sel('i_cur','currency',S.currency,[['BRL','R$ (BRL)'],['USD','US$ (USD)']])}
+  </div><p class="note">${t('fxNote')}</p></section>
+  <p class="note">${t('modelNote')}</p>`;
+},bind(){
+  const map={mw:'mw',price:'price',closing:'closing',baseDate:'baseDate',upfront:'upfront',termMonths:'termMonths',wacc:'wacc',hurdle:'hurdle',contingency:'contingency',capexMult:'capexMult',garCash:'garCash',taxRevenue:'taxRevenue',transCost:'transCost',irpj:'irpj',lossLimit:'lossLimit',dtaRecog:'dtaRecog',land:'land',landArea:'landArea',landTotal:'landTotal',landTotalArea:'landTotalArea',fxRate:'fxRate',risk:'risk',inclGar:'inclGar',currency:'currency'};
+  $$('#view [data-k]').forEach(el=>el.addEventListener('change',()=>{
+    const k=map[el.dataset.k]; if(!k)return; let v=el.value;
+    if(k==='baseDate'){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;S.baseDate=v.slice(0,8)+'01';}
+    else if(k==='currency'){S.currency=v;}
+    else{v=+v;if(!isFinite(v))return;if(el.dataset.pct==='1')v=v/100;
+      if(k==='closing'){v=Math.round(Math.min(54,Math.max(12,v)));}
+      if(k==='termMonths')v=Math.max(1,Math.round(v));
+      S[k]=v;}
+    changed({rerender:false}); renderView(true);
+  }));
+  $$('#view input[data-g]').forEach(el=>el.addEventListener('change',()=>{
+    const g=S.gates[+el.dataset.g],f=el.dataset.f;let v=+el.value;if(!isFinite(v))return;
+    if(f==='month')v=Math.round(Math.max(0,Math.min(60,v)));else v=v/100;
+    g[f]=v;changed({rerender:false});renderView(true);
+  }));
+}};
+
+/* ---------- CAPEX grid */
+VIEWS.capex={html(){
+  const C=S.closing, gm=new Set(S.gates.slice(0,5).map(g=>+g.month));
+  const hdr=Array.from({length:NM},(_,m)=>`<th class="n ${m===C?'cm':gm.has(m)?'gm':''}" title="${mdate(m)}">${m}<br><span style="font-weight:400">${mdate(m)}</span></th>`).join('');
+  const rows=S.capex.map((it,i)=>{
+    const tot=it.m.reduce((a,b)=>a+(+b||0),0);
+    const pos=it.rec?it.m.filter(v=>v>0).reduce((a,b)=>a+b,0):tot;
+    return `<tr data-r="${i}" class="${it.rec?'rec':''}"><td class="sc"><select data-r="${i}" data-f="gate" aria-label="${t('gate')}">${['G0','G1','G2','G3','G4','G5'].map(g=>`<option ${g===it.gate?'selected':''}>${g}</option>`).join('')}</select></td>
+     <td class="sc2 name"><input data-r="${i}" data-f="name" value="${esc(nm(it))}" aria-label="${t('eap')}"></td>
+     <td class="chk"><input type="checkbox" data-r="${i}" data-f="rec" ${it.rec?'checked':''} aria-label="${t('recov')}"></td>
+     <td class="tot" data-tot="${i}">${nf(pos,0)}</td>
+     ${it.m.map((v,m)=>`<td class="${m>C?'after':''}"><input data-r="${i}" data-m="${m}" inputmode="decimal" class="${v?'nz':''}" value="${v?nf(v,v%1?2:0):''}" aria-label="${esc(nm(it))} – ${t('month')} ${m}"></td>`).join('')}
+     <td><button class="btn sm ghost" data-del="${i}" type="button" title="${t('delRow')}">✕</button></td></tr>`;}).join('');
+  const colT=Array.from({length:NM},(_,m)=>S.capex.filter(x=>!x.rec).reduce((a,x)=>a+(+x.m[m]||0),0));
+  return head('v_capex','capexLead')+
+  `<section class="panel"><div class="toolbar">
+    <button class="btn primary" id="b_add" type="button">+ ${t('addRow')}</button>
+    <span class="muted" id="selinfo">${SEL_ROW!=null&&S.capex[SEL_ROW]?esc(nm(S.capex[SEL_ROW])):t('selectRow')}</span>
+    <div class="field"><label for="d_tot">${t('distribute')}</label><input id="d_tot" type="number" placeholder="${t('total')}"></div>
+    <div class="field"><label for="d_from">${t('from')}</label><input id="d_from" type="number" min="0" max="60" step="1" style="width:64px"></div>
+    <div class="field"><label for="d_to">${t('to')}</label><input id="d_to" type="number" min="0" max="60" step="1" style="width:64px"></div>
+    <button class="btn" id="b_dist" type="button">${t('apply')}</button>
+    <span style="flex:1"></span>
+    <span id="delbox"></span>
+    <button class="btn" id="b_rcap" type="button">${t('reset')}</button>
+   </div>
+   <div class="sheet" id="sheet"><table><thead><tr><th class="sc">${t('gate')}</th><th class="sc2" style="text-align:left">${t('eap')}</th><th title="${t('recov')}">Rec.</th><th class="n">${t('totBase')}</th>${hdr}<th></th></tr></thead>
+   <tbody>${rows}</tbody>
+   <tfoot><tr><td class="sc"></td><td class="sc2" style="text-align:left">${t('capexItems')}</td><td></td><td id="ft">${nf(colT.reduce((a,b)=>a+b,0),0)}</td>${colT.map((v,m)=>`<td data-ct="${m}">${v?nf(v,0):''}</td>`).join('')}<td></td></tr></tfoot></table></div>
+  </section>
+  <section class="panel"><header><h2>${t('byGate')}</h2><span class="muted">${uK()}</span></header><div class="tw" id="gsum">${gateSummary()}</div></section>`;
+},bind(){
+  const sheet=$('#sheet');
+  sheet.addEventListener('focusin',e=>{const r=e.target.dataset&&e.target.dataset.r;if(r!=null){SEL_ROW=+r;$('#selinfo').textContent=nm(S.capex[SEL_ROW]);}});
+  sheet.addEventListener('change',e=>{
+    const el=e.target,r=+el.dataset.r,it=S.capex[r];if(!it)return;
+    if(el.dataset.m!=null){const v=parseNum(el.value);it.m[+el.dataset.m]=v;el.value=v?nf(v,v%1?2:0):'';el.classList.toggle('nz',!!v);}
+    else if(el.dataset.f==='name'){it[LANG]=el.value;if(LANG==='pt'&&!it.en)it.en=el.value;}
+    else if(el.dataset.f==='gate'){it.gate=el.value;}
+    else if(el.dataset.f==='rec'){it.rec=el.checked;el.closest('tr').classList.toggle('rec',it.rec);}
+    changed({rerender:false}); refreshCapexTotals();
+  });
+  sheet.addEventListener('paste',e=>{
+    const el=e.target;if(!el.dataset||el.dataset.m==null)return;
+    const txt=(e.clipboardData||window.clipboardData).getData('text');if(!/[\t\n]/.test(txt))return;
+    e.preventDefault();const r0=+el.dataset.r,m0=+el.dataset.m;
+    txt.replace(/\r/g,'').split('\n').filter((l,i,a)=>l!==''||i<a.length-1).forEach((line,i)=>{const it=S.capex[r0+i];if(!it)return;line.split('\t').forEach((c,j)=>{const m=m0+j;if(m<NM)it.m[m]=parseNum(c);});});
+    changed({rerender:false});renderView(true);
+  });
+  sheet.addEventListener('keydown',e=>{
+    const el=e.target;if(el.dataset.m==null)return;const r=+el.dataset.r,m=+el.dataset.m;let n=null;
+    if(e.key==='Enter'||e.key==='ArrowDown')n=[r+1,m];else if(e.key==='ArrowUp')n=[r-1,m];
+    else if(e.key==='ArrowRight'&&el.selectionStart===el.value.length)n=[r,m+1];else if(e.key==='ArrowLeft'&&el.selectionStart===0)n=[r,m-1];
+    if(n){const nx=sheet.querySelector(`input[data-r="${n[0]}"][data-m="${n[1]}"]`);if(nx){e.preventDefault();nx.focus();nx.select();}}
+  });
+  sheet.addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;const i=+b.dataset.del;
+    $('#delbox').innerHTML=`<span class="confirm">${t('confirmDel')} <b>${esc(nm(S.capex[i]))}</b> <button class="btn sm danger" id="cdy" type="button">${t('confirm')}</button><button class="btn sm" id="cdn" type="button">${t('cancel')}</button></span>`;
+    $('#cdy').onclick=()=>{S.capex.splice(i,1);SEL_ROW=null;changed({rerender:false});renderView(true);};$('#cdn').onclick=()=>$('#delbox').innerHTML='';});
+  $('#b_add').onclick=()=>{S.capex.push({gate:'G1',pt:LANG==='pt'?'Novo EAP':'New WBS item',en:'New WBS item',rec:false,m:new Array(NM).fill(0)});SEL_ROW=S.capex.length-1;changed({rerender:false});renderView(true);
+    const el=$(`#sheet input[data-r="${SEL_ROW}"][data-f="name"]`);el&&(el.focus(),el.select());};
+  $('#b_dist').onclick=()=>{if(SEL_ROW==null||!S.capex[SEL_ROW])return toast(t('selectRow'));const tot=+$('#d_tot').value,a=Math.round(+$('#d_from').value),b=Math.round(+$('#d_to').value);
+    if(!isFinite(tot)||!(b>=a)||a<0||b>60)return;const it=S.capex[SEL_ROW];it.m=it.m.map((v,m)=>m>=a&&m<=b?+(tot/(b-a+1)).toFixed(4):0);changed({rerender:false});renderView(true);};
+  $('#b_rcap').onclick=()=>{S.capex=clone(BASE.capex);changed({rerender:false});renderView(true);};
+}};
+function parseNum(s){s=String(s).trim();if(!s)return 0;if(LANG==='pt'||/,\d{1,2}$/.test(s)&&!/\.\d{3}$/.test(s)){s=s.replace(/\./g,'').replace(',','.');}else s=s.replace(/,/g,'');const v=parseFloat(s);return isFinite(v)?v:0;}
+function refreshCapexTotals(){
+  S.capex.forEach((it,i)=>{const el=$(`[data-tot="${i}"]`);if(el){const v=it.rec?it.m.filter(v=>v>0).reduce((a,b)=>a+b,0):it.m.reduce((a,b)=>a+(+b||0),0);el.textContent=nf(v,0);}});
+  let all=0;for(let m=0;m<NM;m++){const v=S.capex.filter(x=>!x.rec).reduce((a,x)=>a+(+x.m[m]||0),0);all+=v;const el=$(`[data-ct="${m}"]`);if(el)el.textContent=v?nf(v,0):'';}
+  $('#ft')&&($('#ft').textContent=nf(all,0));$('#gsum')&&($('#gsum').innerHTML=gateSummary());
+}
+function gateSummary(){
+  const rows=S.gates.map(g=>{const its=S.capex.filter(x=>x.gate===g.code);const base=its.filter(x=>!x.rec).reduce((a,x)=>a+x.m.reduce((p,q,m)=>p+(m<=S.closing?+q||0:0),0),0);
+    const gar=its.filter(x=>x.rec).reduce((a,x)=>a+x.m.reduce((p,q,m)=>p+(m<=S.closing&&q>0?q:0),0),0);
+    return {g,base,cont:base*(1+S.contingency)*S.capexMult,gar};});
+  const T=rows.reduce((a,r)=>({base:a.base+r.base,cont:a.cont+r.cont,gar:a.gar+r.gar}),{base:0,cont:0,gar:0});
+  return `<table><thead><tr><th>${t('gate')}</th><th>${t('stage')}</th><th class="n">${t('totBase')}</th><th class="n">${t('totCont')}</th><th class="n">${t('guarantees')}</th><th class="n">%</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td><b>${r.g.code}</b></td><td>${esc(nm(r.g))}</td><td class="n">${fK(r.base)}</td><td class="n">${fK(r.cont)}</td><td class="n">${r.gar?fK(r.gar):'–'}</td><td class="n">${pct(T.cont?r.cont/T.cont:0)}</td></tr>`).join('')}
+  <tr class="tot"><td colspan="2">${t('total')} (≤ ${t('mo')} ${S.closing})</td><td class="n">${fK(T.base)}</td><td class="n">${fK(T.cont)}</td><td class="n">${fK(T.gar)}</td><td class="n">100%</td></tr></tbody></table>`;
+}
+
+/* ---------- OPEX */
+VIEWS.opex={html(){
+  const rows=S.opex.map((o,i)=>{const tot=R.opexRows[i]?R.opexRows[i].reduce((a,b)=>a+b,0):0;const uc=o.end==='C';
+    return `<tr><td><input class="cell txt" data-o="${i}" data-f="name" value="${esc(nm(o))}" aria-label="${t('account')}"></td>
+    <td class="n"><input class="cell" data-o="${i}" data-f="val" type="number" step="any" value="${o.val}"></td>
+    <td class="n"><input class="cell" data-o="${i}" data-f="start" type="number" min="0" max="60" step="1" value="${o.start}"></td>
+    <td class="n"><input class="cell" data-o="${i}" data-f="end" type="number" min="0" max="60" step="1" value="${uc?S.closing:o.end}" ${uc?'disabled':''}></td>
+    <td><label><input type="checkbox" data-o="${i}" data-f="uc" ${uc?'checked':''}> ${t('untilClose')}</label></td>
+    <td class="n"><input class="cell" data-o="${i}" data-f="adj" type="number" step="0.1" value="${P(o.adj)}"></td>
+    <td class="n num">${fK(tot,1)}</td>
+    <td><button class="btn sm ghost" data-odel="${i}" type="button" title="${t('delRow')}">✕</button></td></tr>`;}).join('');
+  const k=R.kpi;
+  return head('v_opex','opexLead')+
+  `<section class="tiles">
+   <div class="tile"><div class="k">${t('horizon')}</div><div class="v">${fM(k.opexTot,2)}</div><div class="s">${uK()} ${fK(k.opexTot,1)}</div></div>
+   <div class="tile"><div class="k">PV @ ${t('vC').split('·')[1]||'stage'}</div><div class="v">${fM(k.opexPV_C,2)}</div><div class="s">PV @ WACC ${fM(k.opexPV_A,2)}</div></div>
+   <div class="tile"><div class="k">% ${t('irreversible')}</div><div class="v">${pct(k.opexTot/(k.dev-k.opexTot),2)}</div><div class="s">${S.opex.filter(o=>o.val>0).length} ${t('account').toLowerCase()}s</div></div>
+   <div class="tile"><div class="k">${t('opexMonthly')}</div><div class="v">${fK(R.X.filter(v=>v>0).reduce((a,b)=>a+b,0)/Math.max(1,R.X.filter(v=>v>0).length),1)}</div><div class="s">${uK()} / ${t('mo')}</div></div>
+  </section>
+  <section class="panel"><div class="toolbar"><button class="btn primary" id="b_oadd" type="button">+ ${t('addAcc')}</button><span id="odel"></span><span style="flex:1"></span><button class="btn" id="b_orst" type="button">${t('reset')}</button></div>
+  <div class="tw"><table><thead><tr><th>${t('account')}</th><th class="n">${t('monthly')} (R$ mil)</th><th class="n">${t('start')}</th><th class="n">${t('end')}</th><th></th><th class="n">${t('adj')} (%)</th><th class="n">${t('horizon')} (${uK()})</th><th></th></tr></thead><tbody>${rows}
+  <tr class="tot"><td colspan="6">${t('total')}</td><td class="n">${fK(k.opexTot,1)}</td><td></td></tr></tbody></table></div></section>
+  <section class="panel"><header><h2>${t('opexMonthly')}</h2><span class="muted">${uK()}</span></header><div class="chart sm"><canvas id="c_opex"></canvas></div></section>`;
+},bind(){
+  $$('#view [data-o]').forEach(el=>el.addEventListener('change',()=>{
+    const o=S.opex[+el.dataset.o],f=el.dataset.f;
+    if(f==='name'){o[LANG]=el.value;if(!o.en)o.en=el.value;}
+    else if(f==='uc'){o.end=el.checked?'C':S.closing;}
+    else{let v=+el.value;if(!isFinite(v))return;if(f==='adj')v=v/100;if(f==='start'||f==='end')v=Math.round(Math.max(0,Math.min(60,v)));o[f]=v;}
+    changed({rerender:false});renderView(true);
+  }));
+  $$('[data-odel]').forEach(b=>b.onclick=()=>{const i=+b.dataset.odel;$('#odel').innerHTML=`<span class="confirm">${t('confirmDel')} <b>${esc(nm(S.opex[i]))}</b> <button class="btn sm danger" id="ody" type="button">${t('confirm')}</button><button class="btn sm" id="odn" type="button">${t('cancel')}</button></span>`;
+    $('#ody').onclick=()=>{S.opex.splice(i,1);changed({rerender:false});renderView(true);};$('#odn').onclick=()=>$('#odel').innerHTML='';});
+  $('#b_oadd').onclick=()=>{S.opex.push({pt:LANG==='pt'?'Nova conta':'New account',en:'New account',val:0,start:0,end:'C',adj:0});changed({rerender:false});renderView(true);};
+  $('#b_orst').onclick=()=>{S.opex=clone(BASE.opex);changed({rerender:false});renderView(true);};
+  const n=Math.min(60,S.closing+2);
+  mkChart('c_opex',{type:'bar',data:{labels:R.months.slice(0,n+1),datasets:[{label:t('opexMonthly'),data:R.X.slice(0,n+1).map(fx),backgroundColor:css('--steel'),borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${nf(c.raw,1)} ${uK()}`}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:15}}}}});
+}};
+
+/* ---------- Fluxo */
+VIEWS.fluxo={html(){
+  const lim=HIDE_AFTER?lastM():60; const rows=[];
+  for(let m=0;m<=lim;m++){rows.push(`<tr class="${m===S.closing?'hl':''}"><td class="n">${m}</td><td>${mdate(m)}</td><td>${R.B[m]<5?'G'+R.B[m]:'G5'}</td><td class="n">${pct(R.Cr[m])}</td>
+   <td class="n">${fK(-R.E[m])}</td><td class="n">${fK(-R.R[m])}</td><td class="n">${fK(R.G[m])}</td><td class="n">${fK(-R.Y[m]-R.Z[m])}</td><td class="n">${fK(-R.AA[m])}</td>
+   <td class="n ${R.I[m]<0?'neg':''}"><b>${fK(R.I[m])}</b></td><td class="n">${nf(R.L[m],4)}</td><td class="n">${fK(R.M[m])}</td><td class="n ${R.T[m]<0?'neg':'pos'}">${fK(R.T[m])}</td><td class="n">${fK(R.AC[m])}</td></tr>`);}
+  const s=a=>a.reduce((x,y)=>x+y,0);
+  rows.push(`<tr class="tot"><td colspan="4">${t('total')}</td><td class="n">${fK(-s(R.E))}</td><td class="n">${fK(-s(R.R))}</td><td class="n">${fK(s(R.G))}</td><td class="n">${fK(-s(R.Y)-s(R.Z))}</td><td class="n">${fK(-s(R.AA))}</td><td class="n">${fK(s(R.I))}</td><td></td><td class="n">${fK(s(R.M))}</td><td></td><td class="n">${fK(s(R.AC))}</td></tr>`);
+  return head('v_fluxo','fluxoLead',`<label><input type="checkbox" id="hideafter" ${HIDE_AFTER?'checked':''}> ${t('hideAfter')}</label>`)+
+  `<div class="tw tall"><table><thead><tr><th class="n">${t('month')}</th><th>${t('c_date')}</th><th>${t('c_stage')}</th><th class="n">${t('c_rate')}</th><th class="n">${t('c_out')}</th><th class="n">${t('c_guar')}</th><th class="n">${t('c_rev')}</th><th class="n">${t('c_pis')}</th><th class="n">${t('c_ir')}</th><th class="n">${t('c_fcf')}</th><th class="n">${t('c_L')}</th><th class="n">${t('c_pv')}</th><th class="n">${t('c_cum')}</th><th class="n">${t('c_fcfpre')}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+  <p class="note">${uK()} · ${t('k_m0')}: ${fM(R.kpi.npvC)} · ${t('k_irrProj')}: ${pct(R.kpi.irrProj)}</p>`;
+},bind(){$('#hideafter').onchange=e=>{HIDE_AFTER=e.target.checked;renderView(true);};}};
+
+/* ---------- Valuation */
+VIEWS.valuation={html(){
+  const k=R.kpi, names=t('cpNames');
+  const rows=R.cps.map((c,i)=>`<tr><td><b>CP${i}</b></td><td>${esc(names[i])}</td><td class="n">${c.m}</td><td class="n">${pct(c.prob)}</td><td class="n">${fK(c.VA)}</td><td class="n">${fK(c.VB)}</td><td class="n"><b>${fK(c.VC)}</b></td><td class="n">${fK(c.perMW)}</td><td class="n">${fK(c.VCpre)}</td><td class="n">${fK(c.costAcc)}</td><td class="n ${c.VC-S.land<0?'neg':''}">${fK(c.VC-S.land)}</td></tr>`).join('');
+  const sm=[
+    [t('r_m0'),fM(k.npvC),fM(k.npvCpre)],[t('r_close'),fM(k.closeVal),fM(k.closeValPre)],
+    [t('r_irrEmp'),pct(k.irrEmp),pct(k.irrEmpPre)],[t('r_irrProj'),pct(k.irrProj),pct(k.irrProjPre)],
+    [t('r_moic'),xx(k.moic),xx(k.moicPre)],[t('r_result'),fM(k.result),fM(k.resultPre)],
+    [t('r_be'),fPMW(BE.post),fPMW(BE.pre)],[`${t('r_maxEntry')} ${pct(S.hurdle,0)}`,fM(k.maxEntry),fM(k.maxEntryPre)],
+    [t('r_closeMW'),fPMW(k.closeVal/S.mw),fPMW(k.closeValPre/S.mw)],[t('r_ratio'),xx(BE.post?k.closeVal/S.mw/BE.post:null),xx(BE.pre?k.closeValPre/S.mw/BE.pre:null)],
+    [t('k_prob'),pct(k.probTotal),pct(k.probTotal)]];
+  return head('v_valuation','valLead')+
+  `<div class="tw"><table><thead><tr><th>${t('cp')}</th><th>${t('milestone')}</th><th class="n">${t('month')}</th><th class="n">${t('prob')}</th><th class="n">${t('vA')}</th><th class="n">${t('vB')}</th><th class="n">${t('vC')}</th><th class="n">${t('vPerMW')}</th><th class="n">${t('vCpre')}</th><th class="n">${t('costAcc')}</th><th class="n">${t('creation')}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note">${uK()} · ${S.risk===1?t('riskOn'):t('riskOff')} · ${t('inclGar')}: ${S.inclGar?t('yes'):t('no')}</p>
+  <div class="grid2">
+   <section class="panel"><header><h2>${t('summary')}</h2></header><div class="tw"><table><thead><tr><th>${t('metric')}</th><th class="n">${t('withTax')}</th><th class="n">${t('noTax')}</th></tr></thead><tbody>${sm.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('')}</tbody></table></div></section>
+   <section class="panel"><header><h2>${t('ch_cp')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_val"></canvas></div></section>
+  </div>`;
+},bind(){
+  mkChart('c_val',{type:'bar',data:{labels:R.cps.map((c,i)=>`CP${i}`),datasets:[
+    {label:'V_A',data:R.cps.map(c=>c.VA),backgroundColor:css('--line')},
+    {label:'V_B',data:R.cps.map(c=>c.VB),backgroundColor:css('--steel')},
+    {label:'V_C',data:R.cps.map(c=>c.VC),backgroundColor:css('--accent')}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fM(c.raw)}`}}},scales:{y:axisM(),x:{grid:{display:false}}}}});
+}};
+
+/* ---------- Capital */
+VIEWS.capital={html(){
+  const k=R.kpi,f=R.fu,names=t('cpNames');
+  const rows=R.fm.map((r,i)=>`<tr><td><b>CP${i}</b></td><td>${esc(names[i])}</td><td class="n">${r.m}</td><td class="n">${fK(r.D)}</td><td class="n">${fK(r.E)}</td><td class="n">${fK(r.F)}</td><td class="n"><b>${fK(r.I)}</b></td><td class="n">${fK(r.J)}</td><td class="n">${fK(r.K)}</td><td class="n">${fK(r.Lv)}</td></tr>`).join('');
+  const src=[[t('s_land'),f.land],[t('s_aport'),f.aportes],[t('s_rev'),f.revenue],[t('s_guar'),f.guarRel]];
+  const use=[[t('u_land'),f.land],[t('u_dev'),f.dev],[t('u_guar'),f.guarPost],[t('u_pis'),f.pis],[t('u_trans'),f.trans],[t('u_ir'),f.ir],[t('u_dist'),f.dist]];
+  const tb=(list,tot)=>`<table><tbody>${list.map(([a,v])=>`<tr><td>${a}</td><td class="n">${fK(v)}</td><td class="n">${pct(tot?v/tot:0)}</td></tr>`).join('')}<tr class="tot"><td>${t('total')}</td><td class="n">${fK(tot)}</td><td class="n">100%</td></tr></tbody></table>`;
+  return head('v_capital','capLead')+
+  `<section class="tiles">
+    <div class="tile hero"><div class="k">${t('k_peak')}</div><div class="v">${fM(k.peak)}</div><div class="s">${t('peakMonth')}: ${k.peakMonth} · ${mdate(k.peakMonth)}</div></div>
+    <div class="tile"><div class="k">${t('payback')}</div><div class="v">${k.payback??'–'}</div><div class="s">${k.payback!=null?mdate(k.payback):''}</div></div>
+    <div class="tile"><div class="k">${t('sunk')}</div><div class="v">${fM(k.sunkG1,2)}</div><div class="s">CP2 · ${t('mo')} ${R.fm[2].m}</div></div>
+    <div class="tile"><div class="k">${t('guarantees')}</div><div class="v">${fM(k.guar)}</div><div class="s">PV: ${fM(k.guarCostPV,2)}</div></div>
+  </section>
+  <div class="tw"><table><thead><tr><th>${t('cp')}</th><th>${t('milestone')}</th><th class="n">${t('month')}</th><th class="n">${t('c_spent')}</th><th class="n">${t('c_gnet')}</th><th class="n">${t('c_capTot')}</th><th class="n">${t('c_next')}</th><th class="n">${t('c_revTo')}</th><th class="n">${t('c_val')}</th><th class="n">${t('c_created')}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="grid2">
+   <section class="panel"><header><h2>${t('sources')}</h2><span class="muted">${uK()}</span></header><div class="tw">${tb(src,f.srcTot)}</div></section>
+   <section class="panel"><header><h2>${t('uses')}</h2><span class="muted">${uK()} · ${t('check')}: ${fK(f.srcTot-f.useTot)}</span></header><div class="tw">${tb(use,f.useTot)}</div></section>
+  </div>
+  <section class="panel"><header><h2>${t('capNeed')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart sm"><canvas id="c_need"></canvas></div></section>`;
+},bind(){
+  mkChart('c_need',{type:'bar',data:{labels:R.fm.slice(0,6).map((r,i)=>`CP${i}→CP${i+1}`),datasets:[{label:t('c_next'),data:R.fm.slice(0,6).map(r=>r.I),backgroundColor:css('--accent'),borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fM(c.raw)}}},scales:{y:axisM(),x:{grid:{display:false}}}}});
+}};
+
+/* ---------- Demonstrativos: DRE, Balanço, Fluxo de caixa, Fontes e Usos */
+function yearIdx(){const yrs=[...new Set(R.dates.map(x=>x.getUTCFullYear()))];return yrs.map(y=>({y,idx:R.dates.map((x,i)=>x.getUTCFullYear()===y?i:-1).filter(i=>i>=0)}));}
+function stmtTable(lines,mode){ // mode per line: 'sum' (default) or 'end' / 'start'
+  const Y=yearIdx();
+  const cell=x=>`<td class="n ${x<-0.5?'neg':''}">${Math.abs(x)<0.5?'–':fK(x)}</td>`;
+  const body=lines.map(l=>{
+    if(l.hdr) return `<tr><td colspan="${Y.length+2}" class="eyebrow" style="padding-top:14px">${l.hdr}</td></tr>`;
+    const m=l.m||'sum', a=l.a;
+    const v=Y.map(({idx})=>m==='end'?a[idx[idx.length-1]]:m==='start'?a[idx[0]]:idx.reduce((s,i)=>s+a[i],0));
+    const tot=m==='end'?a[a.length-1]:m==='start'?a[0]:a.reduce((x,y)=>x+y,0);
+    return `<tr class="${l.c||''}"><td>${l.l}</td>${v.map(cell).join('')}<td class="n"><b>${Math.abs(tot)<0.5?'–':fK(tot)}</b></td></tr>`;}).join('');
+  return `<div class="tw"><table><thead><tr><th>${uK()}</th>${Y.map(o=>`<th class="n">${o.y}</th>`).join('')}<th class="n">${mode==='bs'?t('end60'):t('total')}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function fuTables(){
+  const f=R.fu;
+  const src=[[t('s_land'),f.land],[t('s_aport'),f.aportes],[t('s_rev'),f.revenue],[t('s_guar'),f.guarRel]];
+  const use=[[t('u_land'),f.land],[t('u_dev'),f.dev],[t('u_guar'),f.guarPost],[t('u_pis'),f.pis],[t('u_trans'),f.trans],[t('u_ir'),f.ir],[t('u_dist'),f.dist]];
+  const tb=(list,tot)=>`<table><tbody>${list.map(([a,v])=>`<tr><td>${a}</td><td class="n">${fK(v)}</td><td class="n">${pct(tot?v/tot:0)}</td></tr>`).join('')}<tr class="tot"><td>${t('total')}</td><td class="n">${fK(tot)}</td><td class="n">100%</td></tr></tbody></table>`;
+  return `<div class="grid2">
+   <section class="panel"><header><h2>${t('sources')}</h2><span class="muted">${uK()}</span></header><div class="tw">${tb(src,f.srcTot)}</div></section>
+   <section class="panel"><header><h2>${t('uses')}</h2><span class="muted">${uK()} · ${t('check')}: ${fK(f.srcTot-f.useTot)}</span></header><div class="tw">${tb(use,f.useTot)}</div></section></div>`;
+}
+VIEWS.dre={html(){
+  const d=R.dre,bs=R.bs,cf=R.cf;
+  const net=d.rev.map((v,i)=>v+d.pis[i]), gross=net.map((v,i)=>v+d.cogs[i]), ebitda=gross.map((v,i)=>v+d.opex[i]);
+  const tabs=[['dre',t('tab_dre')],['bs',t('tab_bs')],['cf',t('tab_cf')],['fu',t('tab_fu')]];
+  let body='';
+  if(DRE_TAB==='dre') body=`<p class="note">${t('dreLead')}</p>`+stmtTable([
+    {l:t('d_rev'),a:d.rev},{l:t('d_pis'),a:d.pis},{l:t('d_net'),a:net,c:'sub'},{l:t('d_cogs'),a:d.cogs},{l:t('d_gross'),a:gross,c:'sub'},{l:t('d_opex'),a:d.opex},{l:t('d_ebitda'),a:ebitda,c:'sub'},{l:t('d_trans'),a:d.trans},{l:t('d_ebt'),a:d.ebt,c:'sub'},{l:t('d_tax'),a:d.tax},{l:t('d_dta'),a:d.ddta},{l:t('d_ni'),a:d.ni,c:'tot'},
+    {hdr:t('d_memo')},{l:t('d_taxable'),a:d.taxable},{l:t('d_loss'),a:d.lossEnd,m:'end'},{l:t('d_asset'),a:d.asset,m:'end'}])+
+    `<p class="note">IRPJ+CSLL ${pct(S.irpj)} · ${t('lossLimit')} ${pct(S.lossLimit,0)} · PIS/COFINS ${pct(S.taxRevenue,2)}</p>`;
+  else if(DRE_TAB==='bs') body=`<p class="note">${t('bsLead')}</p>`+stmtTable([
+    {hdr:t('b_assets')},{l:t('b_cash'),a:bs.cash,m:'end'},{l:t('b_proj'),a:bs.asset,m:'end'},{l:t('b_dep'),a:bs.dep,m:'end'},{l:t('b_dta'),a:bs.dta,m:'end'},{l:t('b_totA'),a:bs.assets,m:'end',c:'tot'},
+    {hdr:t('b_liab')},{l:t('b_taxp'),a:bs.liab,m:'end'},{l:t('b_totL'),a:bs.liab,m:'end',c:'sub'},
+    {hdr:t('b_eq')},{l:t('b_capLand'),a:bs.landCap,m:'end'},{l:t('b_capCash'),a:bs.cashCap,m:'end'},{l:t('b_ret'),a:bs.retained,m:'end'},{l:t('b_totE'),a:bs.equity,m:'end',c:'sub'},
+    {l:t('b_totLE'),a:bs.equity,m:'end',c:'tot'},{l:t('b_check'),a:bs.check,m:'end'}],'bs');
+  else if(DRE_TAB==='cf') body=`<p class="note">${t('cfLead')}</p>`+stmtTable([
+    {l:t('f_ni'),a:cf.ni},{l:t('f_ddta'),a:cf.ddta},{l:t('f_cogs'),a:cf.cogs},{l:t('f_cfo'),a:cf.cfo,c:'sub'},
+    {l:t('f_capex'),a:cf.capex},{l:t('f_guar'),a:cf.guar},{l:t('f_cfi'),a:cf.cfi,c:'sub'},
+    {l:t('f_fin'),a:cf.fin},{l:t('f_cff'),a:cf.fin,c:'sub'},
+    {l:t('f_net'),a:cf.net,c:'tot'},{l:t('f_open'),a:cf.open,m:'start'},{l:t('f_close'),a:cf.close,m:'end',c:'sub'}]);
+  else body=`<p class="note">${t('capLead')}</p>`+fuTables();
+  return head('v_dre','')+`<div class="seg tabs" role="tablist" id="dretabs">${tabs.map(([k,l])=>`<button type="button" role="tab" data-tab="${k}" aria-pressed="${DRE_TAB===k}" aria-selected="${DRE_TAB===k}">${l}</button>`).join('')}</div>`+body;
+},bind(){$$('#dretabs button').forEach(b=>b.onclick=()=>{DRE_TAB=b.dataset.tab;renderView(true);});}};
+
+/* ---------- Comparação bruto (pré-impostos) x pós-impostos */
+VIEWS.comparacao={html(){
+  const k=R.kpi, names=t('cpNames');
+  const drag=k.npvCpre-k.npvC, eff=k.resultPre?(k.resultPre-k.result)/k.resultPre:null;
+  const rows=[
+    [t('r_rev'),k.revenue,k.revenue,'m'],[t('u_pis'),0,-k.taxRev,'m'],[t('u_trans'),0,-k.taxTrans,'m'],[t('u_ir'),0,-k.taxIR,'m'],
+    [t('r_capital'),-k.capital,-k.capital,'m'],[t('r_result'),k.resultPre,k.result,'m',1],
+    [t('r_m0')+' (V_C)',k.npvCpre,k.npvC,'m',1],[t('r_m0')+' (V_A @ WACC)',k.npvApre,k.npvA,'m'],[t('r_close'),k.closeValPre,k.closeVal,'m'],
+    [t('r_irrEmp'),k.irrEmpPre,k.irrEmp,'p'],[t('r_irrProj'),k.irrProjPre,k.irrProj,'p'],[t('r_moic'),k.moicPre,k.moic,'x'],
+    [t('k_peak'),k.peakPre,k.peak,'m'],[t('payback'),k.paybackPre,k.payback,'i'],
+    [t('r_be'),BE.pre,BE.post,'pmw'],[`${t('r_maxEntry')} ${pct(S.hurdle,0)}`,k.maxEntryPre,k.maxEntry,'m'],[t('r_closeMW'),k.closeValPre/S.mw,k.closeVal/S.mw,'pmw']];
+  const f=(v,ty)=>v==null?'–':ty==='p'?pct(v):ty==='x'?xx(v):ty==='i'?String(v):ty==='pmw'?fPMW(v):fM(v);
+  const df=(a,b,ty)=>{if(a==null||b==null)return ['–','–'];const d=b-a;const s=ty==='p'?`${nf(d*100,1)} p.p.`:ty==='x'?`${nf(d,2)}x`:ty==='i'?nf(d,0):ty==='pmw'?fPMW(d):fM(d);return [s,(ty==='p'||!a)?'–':pct(d/Math.abs(a))];};
+  const tr=rows.map(([l,a,b,ty,bold])=>{const [d,dp]=df(a,b,ty);return `<tr class="${bold?'hl':''}"><td>${l}</td><td class="n">${f(a,ty)}</td><td class="n">${f(b,ty)}</td><td class="n ${(b-a)<0?'neg':''}">${d}</td><td class="n">${dp}</td></tr>`;}).join('');
+  const cp=R.cps.map((c,i)=>`<tr><td><b>CP${i}</b></td><td>${esc(names[i])}</td><td class="n">${c.m}</td><td class="n">${fK(c.VCpre)}</td><td class="n">${fK(c.VC)}</td><td class="n neg">${fK(c.VC-c.VCpre)}</td><td class="n">${pct(c.VCpre?c.VC/c.VCpre:null)}</td></tr>`).join('');
+  return head('v_cmp','cmpLead')+
+  `<section class="tiles">
+   <div class="tile hero"><div class="k">${t('taxDrag')} · M0</div><div class="v">${fM(drag)}</div><div class="s">${pct(k.npvCpre?drag/k.npvCpre:null)} ${t('ofPre')}</div></div>
+   <div class="tile"><div class="k">${t('taxTotal')}</div><div class="v">${fM(k.taxes)}</div><div class="s">${pct(k.revenue?k.taxes/k.revenue:null)} ${t('ofRev')}</div></div>
+   <div class="tile"><div class="k">${t('effRate')}</div><div class="v">${pct(eff)}</div><div class="s">${t('effRateSub')}</div></div>
+   <div class="tile"><div class="k">${t('irrDrag')}</div><div class="v">${k.irrEmp!=null&&k.irrEmpPre!=null?nf((k.irrEmp-k.irrEmpPre)*100,1)+' p.p.':'–'}</div><div class="s">${pct(k.irrEmpPre)} → ${pct(k.irrEmp)}</div></div>
+  </section>
+  <section class="panel"><header><h2>${t('cmpTable')}</h2><span class="muted">${S.risk===1?t('riskOn'):t('riskOff')}</span></header>
+   <div class="tw"><table><thead><tr><th>${t('metric')}</th><th class="n">${t('grossPre')}</th><th class="n">${t('withTax')}</th><th class="n">${t('diff')}</th><th class="n">Δ %</th></tr></thead><tbody>${tr}</tbody></table></div></section>
+  <div class="grid2">
+   <section class="panel"><header><h2>${t('bridge')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_bridge"></canvas></div></section>
+   <section class="panel"><header><h2>${t('cashCmp')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_cashcmp"></canvas></div></section>
+  </div>
+  <section class="panel"><header><h2>${t('cpCmp')}</h2><span class="muted">${uK()}</span></header>
+   <div class="tw"><table><thead><tr><th>${t('cp')}</th><th>${t('milestone')}</th><th class="n">${t('month')}</th><th class="n">${t('grossPre')}</th><th class="n">${t('withTax')}</th><th class="n">${t('diff')}</th><th class="n">${t('postOverPre')}</th></tr></thead><tbody>${cp}</tbody></table></div></section>`;
+},bind(){
+  const k=R.kpi, acc=css('--accent'), st=css('--steel'), neg=css('--neg'), pos=css('--pos');
+  const B=t('br');const steps=[[B[0],k.revenue,'tot'],[B[1],-k.capital],[B[2],null,'sub'],[B[3],-k.taxRev],[B[4],-k.taxTrans],[B[5],-k.taxIR],[B[6],null,'end']];
+  let run=0; const data=[],col=[];
+  steps.forEach(([l,v,ty])=>{if(ty==='tot'){data.push([0,v]);run=v;col.push(st);}else if(ty==='sub'||ty==='end'){data.push([0,run]);col.push(ty==='end'?acc:st);}else{data.push([run+v,run]);run+=v;col.push(neg);}});
+  mkChart('c_bridge',{type:'bar',data:{labels:steps.map(s=>s[0]),datasets:[{data,backgroundColor:col,borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fM(c.raw[1]-c.raw[0])}}},scales:{y:axisM(),x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:0,font:{size:10}}}}}});
+  const n=lastM()+1;
+  mkChart('c_cashcmp',{type:'line',data:{labels:R.months.slice(0,n),datasets:[
+    {label:t('pre'),data:R.Tpre.slice(0,n),borderColor:st,pointRadius:0,tension:.15},
+    {label:t('post'),data:R.T.slice(0,n),borderColor:acc,backgroundColor:acc+'22',fill:'-1',pointRadius:0,tension:.15}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{title:i=>`${t('month')} ${i[0].label} · ${mdate(+i[0].label)}`,label:c=>`${c.dataset.label}: ${fM(c.raw)}`}}},scales:{y:axisM(),x:{grid:{display:false},ticks:{maxTicksLimit:12}}}}});
+}};
+
+/* ---------- Sensibilidade */
+VIEWS.sens={html(){
+  const k=R.kpi, prices=[1200,1500,2000,2500,3000,3500,4000,5000,6000,8000,10000], waccs=[0.13,0.135,0.14,0.145,0.15,0.155,0.16];
+  const mx=prices.map(p=>waccs.map(w=>{const r=run(S,{price:p,wacc:w});return MX_MODE==='post'?r.kpi.npvA:r.kpi.npvApre;}));
+  const hs=[0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.30], cls=[S.closing-6,S.closing-3,S.closing,S.closing+3,S.closing+6].filter(m=>m>0&&m<=60);
+  const hm=hs.map(h=>cls.map(m=>hurdlePrice(S,h,m,R)));
+  const tor=[
+    ['t_price',{price:S.price*0.9},{price:S.price*1.1}],['t_capex',{capexMult:S.capexMult*1.1},{capexMult:S.capexMult*0.9}],
+    ['t_wacc',{wacc:S.wacc+0.01},{wacc:Math.max(0,S.wacc-0.01)}],['t_close',{closing:Math.min(54,S.closing+3)},{closing:Math.max(12,S.closing-3)}],
+    ['t_cont',{contingency:0.10},{contingency:0}],['t_tax',{taxRevenue:0.12},{taxRevenue:0}]
+  ].map(([key,lo,hi])=>{const a=runC(lo).kpi.npvC,b=runC(hi).kpi.npvC;return {key,lo:a-k.npvC,hi:b-k.npvC,span:Math.abs(b-a)};}).sort((a,b)=>b.span-a.span);
+  TOR=tor;
+  return head('v_sens','sensLead')+
+  `<section class="tiles">
+   <div class="tile"><div class="k">${t('be_pre')}</div><div class="v">${fPMW(BE.pre)}</div><div class="s">${t('margin')}: ${pct(S.price/BE.pre-1)}</div></div>
+   <div class="tile hero"><div class="k">${t('be_post')}</div><div class="v">${fPMW(BE.post)}</div><div class="s">${t('margin')}: ${pct(S.price/BE.post-1)}</div></div>
+   <div class="tile"><div class="k">${t('be_c')}</div><div class="v">${fPMW(BE.c)}</div><div class="s">${S.risk===1?t('riskOn'):t('riskOff')}</div></div>
+   <div class="tile"><div class="k">${t('price')}</div><div class="v">${fPMW(S.price)}</div><div class="s">WACC ${pct(S.wacc)}</div></div>
+  </section>
+  <section class="panel"><header><h2>${t('mxTitle')}</h2><div class="seg" id="mxseg"><button type="button" data-m="post" aria-pressed="${MX_MODE==='post'}">${t('mxPost')}</button><button type="button" data-m="pre" aria-pressed="${MX_MODE==='pre'}">${t('mxPre')}</button></div></header>
+   <div class="tw mx"><table><thead><tr><th class="rowh">${t('priceMW')} \\ WACC</th>${waccs.map(w=>`<th class="n">${pct(w)}</th>`).join('')}</tr></thead><tbody>
+   ${mx.map((r,i)=>`<tr><th class="rowh n">${nf(fx(prices[i]),0)}</th>${r.map((v,j)=>`<td class="n ${v<0?'c0':'c1'} ${prices[i]===S.price&&Math.abs(waccs[j]-S.wacc)<1e-9?'cur':''}">${fK(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+   <p class="note">${uK()} · ${t('vA')}</p></section>
+  <section class="panel"><header><h2>${t('hurTitle')}</h2><span class="muted">${uK()}/MW</span></header>
+   <div class="tw mx"><table><thead><tr><th class="rowh">Hurdle \\ ${t('closingM')}</th>${cls.map(m=>`<th class="n">${m}</th>`).join('')}</tr></thead><tbody>
+   ${hm.map((r,i)=>`<tr><th class="rowh n">${pct(hs[i],0)}</th>${r.map((v,j)=>`<td class="n ${v<=S.price?'c1':'c0'} ${Math.abs(hs[i]-S.hurdle)<1e-9&&cls[j]===S.closing?'cur':''}">${fK(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+   <p class="note">${t('hurNote')}</p></section>
+  <div class="grid2">
+   <section class="panel"><header><h2>${t('torTitle')}</h2><span class="muted">${uK().replace('mil','mi').replace(' k',' M')}</span></header><div class="chart"><canvas id="c_tor"></canvas></div></section>
+   <section class="panel"><header><h2>${t('curveTitle')}</h2><span class="muted">${uK()}/MW</span></header><div class="chart"><canvas id="c_curve"></canvas></div></section>
+  </div>`;
+},bind(){
+  $$('#mxseg button').forEach(b=>b.onclick=()=>{MX_MODE=b.dataset.m;renderView(true);});
+  mkChart('c_tor',{type:'bar',data:{labels:TOR.map(x=>t(x.key)),datasets:[{label:t('torLow'),data:TOR.map(x=>x.lo),backgroundColor:css('--neg')},{label:t('torHigh'),data:TOR.map(x=>x.hi),backgroundColor:css('--pos')}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fM(c.raw)}`}}},scales:{x:{stacked:true,...axisM()},y:{stacked:true,grid:{display:false}}}}});
+  const lv=[0.7,0.8,0.9,1,1.1,1.2,1.3];const be=lv.map(l=>breakevenPost(Object.assign({},S,{capexMult:S.capexMult*l})));
+  mkChart('c_curve',{type:'line',data:{labels:lv.map(l=>nf(l*100,0)+'%'),datasets:[{label:t('be_post'),data:be.map(v=>fx(v)),borderColor:css('--accent'),backgroundColor:css('--accent'),pointRadius:3,tension:.2},{label:t('price'),data:lv.map(()=>fx(S.price)),borderColor:css('--steel'),borderDash:[5,4],pointRadius:0}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${nf(c.raw,0)} ${uK()}/MW`}}},scales:{x:{title:{display:true,text:t('capexPct')},grid:{display:false}},y:{ticks:{callback:v=>nf(v,0)}}}}});
+}};
+let TOR=[];
+function runC(ov){const s=Object.assign({},S,ov);s.gates=S.gates.map(g=>Object.assign({},g));s.gates[5].month=s.closing;return run(s);}
+
+/* ---------- Cenários */
+let SCEN={mine:[],team:[]}, STORE={db:null,uid:null,mode:'local'}, DL=null, CMP=new Set();
+function scenKpis(st){const s=JSON.parse(JSON.stringify(st));s.gates[5].month=s.closing;const r=run(s);return {r,be:breakevenPost(s)};}
+VIEWS.cenarios={html(){
+  const list=(arr,shared)=>arr.length?arr.map(sc=>{let kp='';try{const {r}=scenKpis(sc.state);kp=`<span>${t('k_m0')}: <b>${fM(r.kpi.npvC)}</b></span><span>${t('s_irr')}: <b>${pct(r.kpi.irrEmp)}</b></span><span>${t('price')}: <b>${fPMW(sc.state.price)}</b></span>`;}catch(e){}
+    return `<div class="scard"><input type="checkbox" data-cmp="${sc.id}" ${CMP.has(sc.id)?'checked':''} aria-label="${t('compare')}"><div class="meta"><b>${esc(sc.name)}</b>${ACTIVE.id===sc.id?` <span class="pill neu">${t('current')}</span>`:''}<div class="muted" style="font-size:.78rem">${new Date(sc.updatedAt||sc.createdAt||Date.now()).toLocaleString(loc())}${sc.notes?' · '+esc(sc.notes):''}</div></div><div class="kp">${kp}</div>
+    <div class="toolbar"><button class="btn sm" data-load="${sc.id}" type="button">${t('load')}</button><button class="btn sm" data-exp="${sc.id}" type="button">${t('exportJ')}</button><button class="btn sm danger" data-sdel="${sc.id}" data-shared="${shared?1:0}" type="button">${t('delRow')}</button><span data-cbox="${sc.id}"></span></div></div>`;}).join(''):`<p class="muted">${t('none')}</p>`;
+  const storeLbl=STORE.mode==='db'?t('store_db'):t('store_local');
+  return head('v_cenarios','scenLead',`<span class="badge">${storeLbl}</span>`)+
+  `<section class="panel"><h2>${t('save')}</h2><div class="form">
+    <div class="field"><label for="sc_name">${t('scName')}</label><input id="sc_name" value="${esc(ACTIVE.name||'')}" placeholder="${LANG==='pt'?'Ex.: Preço 4,0 mi/MW – closing 45':'E.g. Price 4.0 M/MW – closing 45'}"></div>
+    <div class="field"><label for="sc_notes">${t('scNotes')}</label><input id="sc_notes"></div>
+    ${STORE.mode==='db'?`<div class="field"><label for="sc_share">${t('shareTeam')}</label><select id="sc_share"><option value="0">${t('no')}</option><option value="1">${t('yes')}</option></select></div>`:''}
+   </div><div class="toolbar"><button class="btn primary" id="b_save" type="button">${t('saveAs')}</button>${ACTIVE.id?`<button class="btn" id="b_upd" type="button">${t('overwrite')}</button>`:''}<button class="btn" id="b_base" type="button">${t('reset')} (${t('baseScenario')})</button><span style="flex:1"></span><button class="btn" id="b_imp" type="button">${t('importJ')}</button><button class="btn" id="b_expc" type="button">${t('exportJ')} (${t('current').toLowerCase()})</button></div>
+   <div id="iobox"></div><p class="note">${t('autosave')}</p></section>
+  <section class="panel"><h2>${t('mine')}</h2><div class="cards">${list(SCEN.mine,false)}</div></section>
+  ${STORE.mode==='db'?`<section class="panel"><h2>${t('team')}</h2><div class="cards">${list(SCEN.team,true)}</div></section>`:''}
+  <section class="panel"><header><h2>${t('cmpTitle')}</h2></header>${compareTable()}</section>`;
+},bind(){
+  $('#b_save').onclick=()=>saveScenario(false);
+  $('#b_upd')&&($('#b_upd').onclick=()=>saveScenario(true));
+  $('#b_base').onclick=()=>{const c0=S.currency,f0=S.fxRate;S=clone(BASE);S.currency=c0;S.fxRate=f0;ACTIVE={id:null,name:null,store:null};DIRTY=false;calc();lsSet('pl_work',{S,ACTIVE,DIRTY});renderTop();renderStrip();renderView(true);};
+  $$('[data-load]').forEach(b=>b.onclick=()=>{const sc=findScen(b.dataset.load);if(!sc)return;S=Object.assign(defaultState(),clone(sc.state));ACTIVE={id:sc.id,name:sc.name,store:sc.store};DIRTY=false;calc();lsSet('pl_work',{S,ACTIVE,DIRTY});renderTop();renderStrip();renderView(true);toast(t('loaded'));});
+  $$('[data-cmp]').forEach(c=>c.onchange=()=>{c.checked?CMP.add(c.dataset.cmp):CMP.delete(c.dataset.cmp);renderView(true);});
+  $$('[data-sdel]').forEach(b=>b.onclick=()=>{const id=b.dataset.sdel;$(`[data-cbox="${id}"]`).innerHTML=`<span class="confirm">${t('confirmDel')} <button class="btn sm danger" data-y="1" type="button">${t('confirm')}</button><button class="btn sm" data-n="1" type="button">${t('cancel')}</button></span>`;
+    $(`[data-cbox="${id}"] [data-y]`).onclick=()=>deleteScenario(id);$(`[data-cbox="${id}"] [data-n]`).onclick=()=>$(`[data-cbox="${id}"]`).innerHTML='';});
+  $$('[data-exp]').forEach(b=>b.onclick=()=>{const sc=findScen(b.dataset.exp);sc&&exportJSON({name:sc.name,notes:sc.notes,state:sc.state});});
+  $('#b_expc').onclick=()=>exportJSON({name:ACTIVE.name||t('baseScenario'),notes:'',state:S});
+  $('#b_imp').onclick=()=>{$('#iobox').innerHTML=`<div class="field"><label for="imp_t">${t('importNote')}</label><textarea id="imp_t" class="code"></textarea></div><div class="toolbar"><input type="file" id="imp_f" accept=".json,application/json"><button class="btn primary" id="imp_go" type="button">${t('importBtn')}</button><span class="err" id="imp_e"></span></div>`;
+    $('#imp_f').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>$('#imp_t').value=rd.result;rd.readAsText(f);};
+    $('#imp_go').onclick=async()=>{try{const o=JSON.parse($('#imp_t').value);const st=o.state||o;if(!st.capex||!st.gates)throw 0;S=Object.assign(defaultState(),st);ACTIVE={id:null,name:o.name||'Import',store:null};DIRTY=true;calc();lsSet('pl_work',{S,ACTIVE,DIRTY});renderTop();renderStrip();renderView(true);toast(t('loaded'));}catch(e){$('#imp_e').textContent=t('badJson');}};};
+}};
+function findScen(id){return SCEN.mine.concat(SCEN.team).find(s=>s.id===id);}
+function compareTable(){
+  const sel=[{id:'__cur',name:`${t('current')}: ${ACTIVE.name||t('baseScenario')}`,state:S}].concat(SCEN.mine.concat(SCEN.team).filter(s=>CMP.has(s.id)));
+  const data=sel.map(s=>{const {r,be}=scenKpis(s.state);return {s,k:r.kpi,be};});
+  const rows=[[t('price'),d=>fPMW(d.s.state.price)],[t('capexMult'),d=>pct(d.s.state.capexMult,0)],['WACC',d=>pct(d.s.state.wacc)],[t('closing'),d=>d.s.state.closing],[t('riskScen'),d=>d.s.state.risk===1?t('riskOn'):t('riskOff')],
+    [t('k_m0'),d=>fM(d.k.npvC)],[t('k_m0pre'),d=>fM(d.k.npvCpre)],[t('k_close'),d=>fM(d.k.closeVal)],[t('k_irrEmp'),d=>pct(d.k.irrEmp)],[t('k_irrProj'),d=>pct(d.k.irrProj)],[t('k_moic'),d=>xx(d.k.moic)],[t('k_result'),d=>fM(d.k.result)],[t('k_peak'),d=>fM(d.k.peak)],[t('k_be'),d=>fPMW(d.be)],[t('irreversible'),d=>fM(d.k.dev)]];
+  return `<div class="tw"><table><thead><tr><th>${t('metric')}</th>${data.map(d=>`<th class="n">${esc(d.s.name)}</th>`).join('')}</tr></thead><tbody>${rows.map(([l,f])=>`<tr><td>${l}</td>${data.map(d=>`<td class="n">${f(d)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${data.length<2?`<p class="note">${LANG==='pt'?'Marque cenários salvos para comparar com o cenário em uso.':'Tick saved scenarios to compare them with the active one.'}</p>`:''}`;
+}
+async function exportJSON(obj){
+  const txt=JSON.stringify(obj,null,1), fname=(obj.name||'cenario').replace(/[^\w\-]+/g,'_')+'.json';
+  if(DL){try{await DL.save({filename:fname,data:txt});return;}catch(e){}}
+  $('#iobox').innerHTML=`<div class="field"><label for="exp_t">${t('exportNote')}</label><textarea id="exp_t" class="code" readonly>${esc(txt)}</textarea></div><button class="btn sm" id="exp_c" type="button">${t('copy')}</button>`;
+  $('#exp_c').onclick=async()=>{const ta=$('#exp_t');try{await navigator.clipboard.writeText(ta.value);toast(t('copied'));}catch(e){ta.focus();ta.select();}};
+}
+async function saveScenario(overwrite){
+  const name=($('#sc_name').value||'').trim()||`${t('scenario')} ${new Date().toLocaleDateString(loc())}`, notes=$('#sc_notes').value||'';
+  const shared=$('#sc_share')&&$('#sc_share').value==='1';
+  const now=Date.now(); const doc={name,notes,stateJson:JSON.stringify(S),updatedAt:now,createdAt:now};
+  try{
+    if(STORE.mode==='db'){
+      const col=shared?STORE.db.collection('scenarios'):STORE.db.collection(`data/users/${STORE.uid}/app/scenarios`);
+      if(overwrite&&ACTIVE.id&&ACTIVE.store===(shared?'team':'mine')){await col.doc(ACTIVE.id).set(doc);}
+      else{const ref=await col.add(doc);ACTIVE.id=ref.id;}
+      ACTIVE.store=shared?'team':'mine';
+    }else{
+      const arr=lsGet('pl_scen',[]);
+      if(overwrite&&ACTIVE.id){const i=arr.findIndex(x=>x.id===ACTIVE.id);if(i>=0)arr[i]=Object.assign(arr[i],doc,{createdAt:arr[i].createdAt});}
+      else{ACTIVE.id='s'+now;arr.push(Object.assign({id:ACTIVE.id},doc));}
+      lsSet('pl_scen',arr);loadLocal();ACTIVE.store='mine';
+    }
+    ACTIVE.name=name;DIRTY=false;lsSet('pl_work',{S,ACTIVE,DIRTY});renderTop();renderView(true);toast(t('saved'));
+  }catch(e){toast((e&&e.message)||'Erro');}
+}
+async function deleteScenario(id){
+  const sc=findScen(id);if(!sc)return;
+  try{
+    if(sc.store==='local'){lsSet('pl_scen',lsGet('pl_scen',[]).filter(x=>x.id!==id));loadLocal();}
+    else if(sc.store==='team'){await STORE.db.collection('scenarios').doc(id).delete();}
+    else{await STORE.db.collection(`data/users/${STORE.uid}/app/scenarios`).doc(id).delete();}
+    if(ACTIVE.id===id){ACTIVE.id=null;}CMP.delete(id);renderView(true);toast(t('deleted'));
+  }catch(e){toast((e&&e.message)||'Erro');}
+}
+function parseDocs(snap,store){return snap.docs.map(d=>{const x=d.data()||{};let st=null;try{st=JSON.parse(x.stateJson);}catch(e){}return st?{id:d.id,name:x.name||'—',notes:x.notes||'',updatedAt:x.updatedAt,createdAt:x.createdAt,state:st,store}:null;}).filter(Boolean).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));}
+function loadLocal(){SCEN.mine=lsGet('pl_scen',[]).map(x=>{let st=null;try{st=JSON.parse(x.stateJson);}catch(e){}return st?Object.assign({},x,{state:st,store:'local'}):null;}).filter(Boolean).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));}
+async function initStore(){
+  loadLocal();
+  if(!window.claude||!window.claude.use) return;
+  try{
+    const [db,user,dl]=await Promise.all([window.claude.use('db'),window.claude.use('user'),window.claude.use('downloads')]);
+    DL=dl||null;
+    if(!db||!user) return;
+    const uid=await user.id(); if(!uid) return;
+    STORE={db,uid,mode:'db'};
+    db.collection(`data/users/${uid}/app/scenarios`).onSnapshot(s=>{SCEN.mine=parseDocs(s,'mine');if(VIEW==='cenarios')renderView(true);},()=>{});
+    db.collection('scenarios').onSnapshot(s=>{SCEN.team=parseDocs(s,'team');if(VIEW==='cenarios')renderView(true);},()=>{});
+    if(VIEW==='cenarios')renderView(true);
+  }catch(e){}
+}
+
+/* ---------- Acesso */
+const ADMIN='admin';
+const isAdmin=()=>ssGet('pl_session')===ADMIN;
+VIEWS.acesso={html(){
+  const me=ssGet('pl_session'), adm=isAdmin(), list=lsGet('pl_users',[]);
+  const pwPanel=`<section class="panel"><h2>${t('changePw')}</h2><form id="f_pw" class="cards">
+    <div class="field"><label for="pw0">${t('curPw')}</label><input id="pw0" type="password" autocomplete="current-password" required></div>
+    <div class="field"><label for="pw1">${t('newPw')}</label><input id="pw1" type="password" autocomplete="new-password" required minlength="6"></div>
+    <div class="err" id="pwe"></div><div><button class="btn primary" type="submit">${t('changePw')}</button></div></form></section>`;
+  if(!adm) return head('v_acesso','')+`<div class="grid2">${pwPanel}<section class="panel"><h2>${t('user')}</h2><p>${esc(me)}</p><p class="note">${t('adminOnly')}</p></section></div>`;
+  const rows=list.map(u=>{const self=u.u===me, root=u.u===ADMIN;
+    return `<tr><td>${esc(u.u)}${root?` <span class="pill pos">${t('roleAdmin')}</span>`:''}${self?` <span class="pill neu">${t('you')}</span>`:''}</td>
+    <td class="n" data-ubox="${esc(u.u)}">${root?'':`<button class="btn sm" data-rp="${esc(u.u)}" type="button">${t('resetPw')}</button> <button class="btn sm danger" data-ru="${esc(u.u)}" type="button">${t('remove')}</button>`}</td></tr>`;}).join('');
+  return head('v_acesso','')+
+  `<div class="grid2">${pwPanel}
+   <section class="panel"><h2>${t('addUser')}</h2><form id="f_u" class="cards">
+    <div class="field"><label for="nu">${t('newUser')}</label><input id="nu" required autocomplete="off"></div>
+    <div class="field"><label for="np">${t('password')}</label><input id="np" type="password" required minlength="6" autocomplete="new-password"></div>
+    <div class="err" id="ue"></div><div><button class="btn primary" type="submit">${t('addUser')}</button></div></form></section></div>
+  <section class="panel"><h2>${t('user')}</h2><div class="tw"><table><tbody>${rows}</tbody></table></div><p class="note">${t('adminNote')}</p></section>`;
+},bind(){
+  $('#f_pw').onsubmit=async e=>{e.preventDefault();const me=ssGet('pl_session'),list=await users(),u=list.find(x=>x.u===me);
+    if(!u||u.h!==await hash($('#pw0').value))return $('#pwe').textContent=t('wrongPw');
+    if($('#pw1').value.length<6)return $('#pwe').textContent=t('pwShort');
+    u.h=await hash($('#pw1').value);lsSet('pl_users',list);toast(t('pwChanged'));renderView(true);};
+  if(!isAdmin()) return;
+  $('#f_u').onsubmit=async e=>{e.preventDefault();if(!isAdmin())return;const list=await users(),n=$('#nu').value.trim().toLowerCase();
+    if(!/^[a-z0-9._-]{2,32}$/.test(n))return $('#ue').textContent=t('badUser');
+    if(list.find(x=>x.u===n))return $('#ue').textContent=t('userExists');if($('#np').value.length<6)return $('#ue').textContent=t('pwShort');
+    list.push({u:n,h:await hash($('#np').value)});lsSet('pl_users',list);toast(t('userAdded'));renderView(true);};
+  $$('[data-ru]').forEach(b=>b.onclick=()=>{const u=b.dataset.ru,box=b.closest('[data-ubox]');
+    box.innerHTML=`<span class="confirm">${t('confirmDelUser')} <button class="btn sm danger" data-y="1" type="button">${t('confirm')}</button><button class="btn sm" data-n="1" type="button">${t('cancel')}</button></span>`;
+    box.querySelector('[data-y]').onclick=()=>{if(!isAdmin()||u===ADMIN)return;lsSet('pl_users',lsGet('pl_users',[]).filter(x=>x.u!==u));toast(t('userRemoved'));renderView(true);};
+    box.querySelector('[data-n]').onclick=()=>renderView(true);});
+  $$('[data-rp]').forEach(b=>b.onclick=()=>{const u=b.dataset.rp,box=b.closest('[data-ubox]');
+    box.innerHTML=`<span class="confirm"><input type="password" id="rpw" placeholder="${t('newPw')}" minlength="6" autocomplete="new-password" style="width:150px;background:var(--input);border:1px solid var(--input-line);border-radius:6px;padding:4px 6px"> <button class="btn sm primary" data-y="1" type="button">${t('confirm')}</button><button class="btn sm" data-n="1" type="button">${t('cancel')}</button></span>`;
+    box.querySelector('[data-y]').onclick=async()=>{if(!isAdmin())return;const v=$('#rpw').value;if(v.length<6)return toast(t('pwShort'));
+      const list=await users(),x=list.find(z=>z.u===u);if(!x)return;x.h=await hash(v);lsSet('pl_users',list);toast(t('pwReset'));renderView(true);};
+    box.querySelector('[data-n]').onclick=()=>renderView(true);});
+}};
+
+/* ================= boot ================= */
+function boot(){
+  $('#login').hidden=true;$('#app').hidden=false;
+  renderShell();route();
+}
+(function init(){
+  LANG=lsGet('pl_lang','pt');TAXM=lsGet('pl_taxmode','post');document.documentElement.lang=LANG==='pt'?'pt-BR':'en';
+  applyTheme(lsGet('pl_theme','system'));
+  const w=lsGet('pl_work',null);
+  if(w&&w.S&&w.S.capex){S=Object.assign(defaultState(),w.S);ACTIVE=w.ACTIVE||ACTIVE;DIRTY=!!w.DIRTY;}
+  calc();
+  window.addEventListener('hashchange',()=>{if(!$('#app').hidden)route();});
+  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!$('#app').hidden)renderView(true);});
+  users().then(list=>{const ses=ssGet('pl_session');if(ses&&list.some(x=>x.u===ses))boot();else{ssSet('pl_session',null);showLogin();}});
+  initStore();
+})();
+
+</script>
+
+</body></html>
